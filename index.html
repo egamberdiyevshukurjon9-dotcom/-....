@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ЭкоТаълим — экологик таълим платформаси</title>
+  <meta name="description" content="Аҳоли, корхоналар ва таълим муассасалари учун бепул экологик таълим платформаси: курслар, тестлар, янгиликлар, ҳаво сифати ва углерод калькулятори.">
+  <meta name="theme-color" content="#15803d">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#bosh"><span class="brand-logo">🌿</span> ЭкоТаълим</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Меню" aria-expanded="false">☰</button>
+      <nav class="nav" id="nav">
+        <a href="#kurslar">Курслар</a>
+        <a href="#yangiliklar">Янгиликлар</a>
+        <a href="#havo">Ҳаво сифати</a>
+        <a href="#kalkulyator">Калькулятор</a>
+        <a href="#chellenj">Челленж</a>
+        <a href="#yordamchi">Ёрдамчи</a>
+      </nav>
+      <div class="user-chip" id="userChip" title="Сизнинг даражангиз">
+        <span id="levelIcon">🌰</span>
+        <span><b id="xpVal">0</b> XP</span>
+      </div>
+      <button class="theme-btn" id="themeBtn" aria-label="Мавзуни алмаштириш">🌓</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="bosh">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="pill">Бепул · Онлайн · Ҳамма учун</span>
+          <h1>Табиатни асраш <span class="grad">билимдан</span> бошланади</h1>
+          <p class="lead">Аҳоли, корхоналар ва таълим муассасалари учун замонавий экологик таълим платформаси. Интерактив курслар, тестлар, ҳаво сифатини реал вақтда кузатиш, углерод калькулятори ва энг сўнгги экологик янгиликлар.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#kurslar">Ўқишни бошлаш</a>
+            <a class="btn btn-ghost" href="#kalkulyator">Углерод изимни ҳисоблаш</a>
+          </div>
+          <div class="tip-card">
+            <span class="tip-icon">💡</span>
+            <div><b>Кун маслаҳати:</b> <span id="dailyTip"></span></div>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="globe">🌍</div>
+          <div class="orbit o1">🌳</div>
+          <div class="orbit o2">☀️</div>
+          <div class="orbit o3">💧</div>
+          <div class="orbit o4">♻️</div>
+        </div>
+      </div>
+      <div class="wrap stats">
+        <div class="stat"><b>3</b><span>йўналиш: аҳоли, корхона, таълим</span></div>
+        <div class="stat"><b id="lessonCount">12</b><span>интерактив дарс ва тест</span></div>
+        <div class="stat"><b>13</b><span>шаҳар ҳаво сифати, жонли</span></div>
+        <div class="stat"><b id="progressPct">0%</b><span>сизнинг умумий ўзлаштиришингиз</span></div>
+      </div>
+    </section>
+
+    <!-- AUDIENCES -->
+    <section class="section">
+      <div class="wrap">
+        <h2 class="section-title">Ким учун?</h2>
+        <div class="aud-grid">
+          <article class="aud">
+            <div class="aud-icon">👨‍👩‍👧</div>
+            <h3>Аҳоли учун</h3>
+            <p>Кундалик ҳаётда сув, энергияни тежаш, чиқиндиларни саралаш ва соғлом муҳит яратиш бўйича оддий ва тушунарли дарслар.</p>
+          </article>
+          <article class="aud">
+            <div class="aud-icon">🏭</div>
+            <h3>Корхоналар учун</h3>
+            <p>Ходимларни ўқитиш: экологик менежмент (ISO 14001), энергия самарадорлиги, айланма иқтисодиёт ва ESG ҳисоботлари.</p>
+          </article>
+          <article class="aud">
+            <div class="aud-icon">🎓</div>
+            <h3>Мактаб ва олийгоҳлар учун</h3>
+            <p>Барқарор ривожланиш мақсадлари, Орол муаммоси, яшил технологиялар ва тадқиқот лойиҳалари. Якунида — сертификат.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- COURSES -->
+    <section class="section alt" id="kurslar">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="section-title">Курслар</h2>
+          <div class="filters" id="courseFilters">
+            <button class="chip active" data-f="all">Барчаси</button>
+            <button class="chip" data-f="aholi">Аҳоли</button>
+            <button class="chip" data-f="korxona">Корхона</button>
+            <button class="chip" data-f="talaba">Таълим</button>
+          </div>
+        </div>
+        <div class="course-grid" id="courseGrid"></div>
+      </div>
+    </section>
+
+    <!-- NEWS -->
+    <section class="section" id="yangiliklar">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="section-title">Энг сўнгги янгиликлар</h2>
+          <input class="search" id="newsSearch" type="search" placeholder="🔍 Янгиликлардан излаш…">
+        </div>
+        <div class="filters" id="newsFilters"></div>
+        <div class="news-grid" id="newsGrid"></div>
+      </div>
+    </section>
+
+    <!-- AIR QUALITY -->
+    <section class="section alt" id="havo">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Ҳаво сифати — жонли</h2>
+            <p class="muted">Ўзбекистон шаҳарлари бўйича PM2.5, PM10 ва AQI индекси. Маълумот манбаи: Open-Meteo / Copernicus (CAMS), ҳар соатда янгиланади.</p>
+          </div>
+          <button class="btn btn-ghost" id="aqRefresh">↻ Янгилаш</button>
+        </div>
+        <div class="aq-legend">
+          <span><i style="background:#22c55e"></i>Яхши (0–50)</span>
+          <span><i style="background:#eab308"></i>Ўртача (51–100)</span>
+          <span><i style="background:#f97316"></i>Сезгирлар учун зарарли (101–150)</span>
+          <span><i style="background:#ef4444"></i>Зарарли (151–200)</span>
+          <span><i style="background:#a855f7"></i>Жуда зарарли (201+)</span>
+        </div>
+        <div class="aq-grid" id="aqGrid"><p class="muted">Юкланмоқда…</p></div>
+        <p class="muted small" id="aqTime"></p>
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+    <section class="section" id="kalkulyator">
+      <div class="wrap">
+        <h2 class="section-title">Углерод изи калькулятори</h2>
+        <p class="muted">Йиллик шахсий CO₂ чиқиндингизни тахминий ҳисобланг ва уни камайтириш бўйича шахсий тавсиялар олинг.</p>
+        <div class="calc">
+          <form id="calcForm" class="calc-form">
+            <label>Ойлик электр сарфи (кВт·соат)
+              <input type="range" name="elec" min="0" max="800" step="10" value="200"><output>200</output>
+            </label>
+            <label>Ойлик табиий газ сарфи (м³)
+              <input type="range" name="gas" min="0" max="500" step="10" value="100"><output>100</output>
+            </label>
+            <label>Ҳафталик автомобилда юриш (км)
+              <input type="range" name="car" min="0" max="1000" step="10" value="100"><output>100</output>
+            </label>
+            <label>Йилига самолётда парвозлар сони
+              <input type="range" name="fly" min="0" max="20" step="1" value="1"><output>1</output>
+            </label>
+            <label>Овқатланиш тури
+              <select name="diet">
+                <option value="2500">Гўшт кўп</option>
+                <option value="1900" selected>Аралаш</option>
+                <option value="1500">Гўшт кам</option>
+                <option value="1100">Вегетариан</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" name="recycle"> Чиқиндиларни саралайман</label>
+          </form>
+          <div class="calc-result">
+            <div class="gauge">
+              <svg viewBox="0 0 200 120" aria-hidden="true">
+                <path d="M20 110 A80 80 0 0 1 180 110" class="gauge-bg"/>
+                <path d="M20 110 A80 80 0 0 1 180 110" class="gauge-val" id="gaugeVal"/>
+              </svg>
+              <div class="gauge-num"><b id="calcTotal">0</b><span>тонна CO₂ / йил</span></div>
+            </div>
+            <div class="bars" id="calcBars"></div>
+            <p class="muted small">Таққослаш учун: дунё бўйича ўртача ≈ 4,7 т; Париж келишуви мақсадларига мос даража ≈ 2 т. Коэффициентлар тахминий.</p>
+            <ul class="recs" id="calcRecs"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHALLENGE -->
+    <section class="section alt" id="chellenj">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Кунлик эко-челленж</h2>
+            <p class="muted">Ҳар куни яшил одатларни белгиланг, XP тўпланг ва кетма-кет кунлар сериясини узайтиринг.</p>
+          </div>
+          <div class="streak"><span>🔥</span><b id="streakVal">0</b> кун серия</div>
+        </div>
+        <div class="ch-grid" id="chGrid"></div>
+        <h3 class="sub">Нишонлар</h3>
+        <div class="badges" id="badges"></div>
+        <h3 class="sub">Даражангиз</h3>
+        <div class="level-box">
+          <div class="level-name" id="levelName"></div>
+          <div class="progress"><div id="levelBar"></div></div>
+          <p class="muted small" id="levelNext"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASSISTANT -->
+    <section class="section" id="yordamchi">
+      <div class="wrap">
+        <h2 class="section-title">Эко-ёрдамчи</h2>
+        <p class="muted">Экология бўйича саволингизни ёзинг: пластик, сув, ҳаво, чиқиндилар, корхона, ISO 14001, дарахт экиш ва бошқалар.</p>
+        <div class="chat">
+          <div class="chat-log" id="chatLog" aria-live="polite"></div>
+          <div class="chat-suggest" id="chatSuggest"></div>
+          <form class="chat-form" id="chatForm">
+            <input id="chatInput" placeholder="Саволингизни ёзинг…" autocomplete="off">
+            <button class="btn btn-primary" type="submit">Юбориш</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div>
+        <b>🌿 ЭкоТаълим</b>
+        <p class="muted small">Экологик маданиятни ошириш учун очиқ таълим платформаси. Барча материаллар бепул.</p>
+      </div>
+      <div class="small muted">
+        <button class="linklike" id="resetBtn">Натижаларимни тозалаш</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- LESSON MODAL -->
+  <dialog class="modal" id="lessonModal">
+    <div class="modal-inner">
+      <button class="modal-close" id="modalClose" aria-label="Ёпиш">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
