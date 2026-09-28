@@ -5,6 +5,7 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const T = (s) => EkoLang.t(s);
   const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
   /* ---------- Ҳолат (браузерда сақланади) ---------- */
@@ -205,23 +206,23 @@
     g.strokeStyle = "#86efac"; g.lineWidth = 3; g.strokeRect(70, 70, W - 140, H - 140);
     g.textAlign = "center";
     g.fillStyle = "#15803d"; g.font = "700 44px Inter, sans-serif";
-    g.fillText("🌿 ЭкоТаълим", W / 2, 180);
+    g.fillText(T("🌿 ЭкоТаълим"), W / 2, 180);
     g.fillStyle = "#13261a"; g.font = "800 96px Inter, sans-serif";
-    g.fillText("СЕРТИФИКАТ", W / 2, 320);
+    g.fillText(T("СЕРТИФИКАТ"), W / 2, 320);
     g.fillStyle = "#5b6f61"; g.font = "400 36px Inter, sans-serif";
-    g.fillText("Ушбу сертификат", W / 2, 420);
+    g.fillText(T("Ушбу сертификат"), W / 2, 420);
     g.fillStyle = "#0c4a6e"; g.font = "700 76px Inter, sans-serif";
     g.fillText(name, W / 2, 530, W - 240);
     g.fillStyle = "#15803d"; g.fillRect(W / 2 - 300, 560, 600, 4);
     g.fillStyle = "#5b6f61"; g.font = "400 36px Inter, sans-serif";
-    g.fillText("га қуйидаги экологик таълим курсини муваффақиятли", W / 2, 640);
-    g.fillText("тугатганлиги учун берилди:", W / 2, 690);
+    g.fillText(T("га қуйидаги экологик таълим курсини муваффақиятли"), W / 2, 640);
+    g.fillText(T("тугатганлиги учун берилди:"), W / 2, 690);
     g.fillStyle = "#13261a"; g.font = "700 50px Inter, sans-serif";
-    g.fillText(`«${course.title}»`, W / 2, 790, W - 240);
+    g.fillText(T(`«${course.title}»`), W / 2, 790, W - 240);
     g.fillStyle = "#5b6f61"; g.font = "400 30px Inter, sans-serif";
-    g.fillText(`${course.lessons.length} та дарс · барча тестлар топширилган`, W / 2, 850);
+    g.fillText(T(`${course.lessons.length} та дарс · барча тестлар топширилган`), W / 2, 850);
     const d = new Date();
-    g.textAlign = "left"; g.fillText(`Сана: ${dayKey(d).split("-").reverse().join(".")}`, 160, 990);
+    g.textAlign = "left"; g.fillText(T(`Сана: ${dayKey(d).split("-").reverse().join(".")}`), 160, 990);
     const id = "ET-" + course.id.toUpperCase() + "-" + d.getTime().toString(36).toUpperCase();
     g.textAlign = "right"; g.fillText(`№ ${id}`, W - 160, 990);
     g.font = "120px sans-serif"; g.textAlign = "center"; g.fillText("🌍", W / 2, 1010);
@@ -245,14 +246,14 @@
     $$("#newsFilters .chip").forEach((x) => x.classList.toggle("active", x === b));
     renderNews();
   });
-  $("#newsSearch").addEventListener("input", (e) => { newsQ = e.target.value.trim().toLowerCase(); renderNews(); });
+  $("#newsSearch").addEventListener("input", (e) => { newsQ = e.target.value.trim(); renderNews(); });
 
   function renderNews() {
     const now = Date.now();
     const items = [...NEWS]
       .sort((a, b) => b.date.localeCompare(a.date))
       .filter((n) => newsCat === "all" || n.cat === newsCat)
-      .filter((n) => !newsQ || (n.title + " " + n.text).toLowerCase().includes(newsQ));
+      .filter((n) => !newsQ || EkoLang.matches(n.title + " " + n.text, newsQ));
     $("#newsGrid").innerHTML = items.length ? items.map((n) => {
       const age = (now - new Date(n.date + "T00:00:00").getTime()) / 864e5;
       return `<article class="news">
@@ -425,8 +426,7 @@
     log.scrollTop = log.scrollHeight;
   }
   function answer(q) {
-    const t = q.toLowerCase();
-    const scored = ASSISTANT_KB.map((e) => ({ e, s: e.k.filter((k) => t.includes(k)).length }))
+    const scored = ASSISTANT_KB.map((e) => ({ e, s: e.k.filter((k) => EkoLang.matches(q, k)).length }))
       .filter((x) => x.s > 0).sort((a, b) => b.s - a.s);
     if (!scored.length) {
       return "Кечирасиз, бу саволга ҳозирча аниқ жавобим йўқ. Мен пластик, сув, ҳаво сифати, чиқиндиларни саралаш, иқлим, энергия, дарахт экиш, Орол, ISO 14001 ва ESG мавзуларида ёрдам бера оламан. Саволни шу калит сўзлар билан бериб кўринг.";
@@ -469,7 +469,7 @@
   });
 
   $("#resetBtn").addEventListener("click", () => {
-    if (!confirm("Барча натижалар (XP, дарслар, челленжлар) ўчирилади. Давом этасизми?")) return;
+    if (!confirm(T("Барча натижалар (XP, дарслар, челленжлар) ўчирилади. Давом этасизми?"))) return;
     state = fresh(); save();
     renderCourses(); renderChallenges(); renderGamification();
     toast("Натижалар тозаланди");

@@ -51,6 +51,8 @@ a { color: var(--primary); }
 .user-chip { display: flex; gap: 6px; align-items: center; background: var(--primary-soft); padding: 6px 12px; border-radius: 999px; font-size: .9rem; white-space: nowrap; }
 .theme-btn, .menu-btn { background: none; border: 1px solid var(--line); border-radius: 10px; height: 38px; width: 38px; cursor: pointer; color: var(--text); font-size: 1.1rem; }
 .menu-btn { display: none; }
+.lang-btn { background: none; border: 1px solid var(--line); border-radius: 10px; height: 38px; padding: 0 10px; cursor: pointer; color: var(--text); font: 600 .85rem Inter, system-ui, sans-serif; }
+.lang-btn:hover, .theme-btn:hover { border-color: var(--primary); }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-weight: 600; text-decoration: none; border: 1px solid transparent; cursor: pointer; font-size: 1rem; font-family: inherit; transition: transform .15s, box-shadow .15s; }
@@ -81,7 +83,7 @@ h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; margin: 16px 0; lett
 @media (prefers-reduced-motion: reduce) { .globe, .orbit { animation: none; } html { scroll-behavior: auto; } }
 
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px; }
-.stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+.stat { min-width: 0; overflow-wrap: anywhere; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
 .stat b { display: block; font-size: 1.8rem; color: var(--primary); }
 .stat span { color: var(--muted); font-size: .9rem; }
 
@@ -230,8 +232,17 @@ h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; margin: 16px 0; lett
 @media (max-width: 620px) {
   .aud-grid, .course-grid, .news-grid, .ch-grid { grid-template-columns: 1fr; }
   .user-chip span:last-child { display: none; }
+  .topbar-inner { gap: 8px; }
   .search { min-width: 0; width: 100%; }
   .section { padding: 48px 0; }
   .modal-inner { padding: 22px 18px; }
   .bar-row { grid-template-columns: 90px 1fr 48px; }
+}
+@media (max-width: 420px) {
+  .brand { font-size: 1rem; gap: 6px; }
+  .user-chip { padding: 6px 8px; }
+  .lang-btn { padding: 0 8px; }
+}
+@media (max-width: 379px) {
+  .brand-name { display: none; }
 }
