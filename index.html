@@ -21,7 +21,8 @@
       <nav class="nav" id="nav">
         <a href="#kurslar">Курслар</a>
         <a href="#yangiliklar">Янгиликлар</a>
-        <a href="#havo">Ҳаво сифати</a>
+        <a href="#kutubxona">Кутубхона</a>
+        <a href="#havo">Ҳаво</a>
         <a href="#kalkulyator">Калькулятор</a>
         <a href="#chellenj">Челленж</a>
         <a href="#yordamchi">Ёрдамчи</a>
@@ -63,6 +64,7 @@
       <div class="wrap stats">
         <div class="stat"><b>3</b><span>йўналиш: аҳоли, корхона, таълим</span></div>
         <div class="stat"><b id="lessonCount">12</b><span>интерактив дарс ва тест</span></div>
+        <div class="stat"><b id="libCount">30</b><span>кутубхона материали</span></div>
         <div class="stat"><b>13</b><span>шаҳар ҳаво сифати, жонли</span></div>
         <div class="stat"><b id="progressPct">0%</b><span>сизнинг умумий ўзлаштиришингиз</span></div>
       </div>
@@ -120,8 +122,30 @@
       </div>
     </section>
 
+    <!-- LIBRARY -->
+    <section class="section alt" id="kutubxona">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">📚 Эко-кутубхона</h2>
+            <p class="muted">Йўқолиб бораётган ҳайвонлар, экологияга оид машҳур китоблар ва қонунлар ҳақида қизиқарли маълумотлар. Ҳар бир янги материал учун +5 XP.</p>
+          </div>
+          <input class="search" id="libSearch" type="search" placeholder="🔍 Кутубхонадан излаш…">
+        </div>
+        <div class="lib-feature" id="libFeature"></div>
+        <div class="lib-tabs" role="tablist" id="libTabs">
+          <button class="lib-tab active" role="tab" aria-selected="true" data-t="animals">🐾 Ноёб ҳайвонлар</button>
+          <button class="lib-tab" role="tab" aria-selected="false" data-t="books">📖 Китоблар</button>
+          <button class="lib-tab" role="tab" aria-selected="false" data-t="laws">⚖️ Қонунлар</button>
+        </div>
+        <div class="filters" id="libFilters"></div>
+        <div class="lib-grid" id="libGrid"></div>
+        <p class="muted small" id="libProgress"></p>
+      </div>
+    </section>
+
     <!-- AIR QUALITY -->
-    <section class="section alt" id="havo">
+    <section class="section" id="havo">
       <div class="wrap">
         <div class="section-head">
           <div>
@@ -143,7 +167,7 @@
     </section>
 
     <!-- CALCULATOR -->
-    <section class="section" id="kalkulyator">
+    <section class="section alt" id="kalkulyator">
       <div class="wrap">
         <h2 class="section-title">Углерод изи калькулятори</h2>
         <p class="muted">Йиллик шахсий CO₂ чиқиндингизни тахминий ҳисобланг ва уни камайтириш бўйича шахсий тавсиялар олинг.</p>
@@ -188,7 +212,7 @@
     </section>
 
     <!-- CHALLENGE -->
-    <section class="section alt" id="chellenj">
+    <section class="section" id="chellenj">
       <div class="wrap">
         <div class="section-head">
           <div>
@@ -210,7 +234,7 @@
     </section>
 
     <!-- ASSISTANT -->
-    <section class="section" id="yordamchi">
+    <section class="section alt" id="yordamchi">
       <div class="wrap">
         <h2 class="section-title">Эко-ёрдамчи</h2>
         <p class="muted">Экология бўйича саволингизни ёзинг: пластик, сув, ҳаво, чиқиндилар, корхона, ISO 14001, дарахт экиш ва бошқалар.</p>
@@ -250,6 +274,7 @@
 
   <script src="js/translit.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/library.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

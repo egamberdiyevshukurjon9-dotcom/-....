@@ -10,7 +10,7 @@
 
   /* ---------- Ҳолат (браузерда сақланади) ---------- */
   const KEY = "ekotalim:v1";
-  const fresh = () => ({ xp: 0, correct: {}, perfect: {}, challenges: {}, flags: {}, name: "" });
+  const fresh = () => ({ xp: 0, correct: {}, perfect: {}, challenges: {}, flags: {}, read: {}, name: "" });
   let state = fresh();
   try { state = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) { /* хотира йўқ — сақламасдан ишлайди */ }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ } };
@@ -99,7 +99,7 @@
   const modalBody = $("#modalBody");
   $("#modalClose").addEventListener("click", () => modal.close());
   modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
-  modal.addEventListener("close", renderCourses);
+  modal.addEventListener("close", () => { renderCourses(); renderLibrary(); });
 
   function openLesson(cid, li) {
     const course = COURSES.find((c) => c.id === cid);
@@ -266,6 +266,122 @@
     }).join("") : `<p class="muted">Ҳеч нарса топилмади.</p>`;
   }
 
+  /* ---------- Эко-кутубхона ---------- */
+  const LIB_FILTERS = {
+    animals: { all: "Барчаси", uz: "Ўзбекистон", world: "Дунё" },
+    books: Object.assign({ all: "Барчаси" }, ...LIBRARY.books.map((b) => ({ [b.tag]: b.tag }))),
+    laws: { all: "Барчаси", "Ўзбекистон": "Ўзбекистон", "Халқаро": "Халқаро" }
+  };
+  const libTotal = LIBRARY.animals.length + LIBRARY.books.length + LIBRARY.laws.length;
+  let libTab = "animals", libFilter = "all", libQ = "";
+  const readKey = (t, i) => `${t}:${i}`;
+  const statusBadge = (st) => `<span class="status" style="background:${IUCN[st].color}">${esc(IUCN[st].label)}</span>`;
+  const libText = (t, x) => t === "animals" ? [x.name, x.latin, x.where, ...x.facts].join(" ")
+    : t === "books" ? [x.title, x.orig, x.author, x.short, ...x.body].join(" ")
+    : [x.title, x.short, ...x.body].join(" ");
+  const libGroup = (t, x) => t === "animals" ? x.region : t === "books" ? x.tag : x.kind;
+
+  function renderLibFeature() {
+    const n = LIBRARY.animals.length;
+    const i = Math.floor(Date.now() / 864e5) % n;
+    const a = LIBRARY.animals[i];
+    const fact = a.facts[Math.floor(Date.now() / 864e5 / n) % a.facts.length];
+    $("#libFeature").innerHTML = `
+      <div class="big">${a.icon}</div>
+      <div><div class="kicker">🐾 Кун ҳайвони</div><h3>${esc(a.name)}</h3><p><b>Биласизми?</b> ${esc(fact)}</p></div>
+      <button class="btn btn-primary" data-lib="animals" data-i="${i}">Батафсил</button>`;
+  }
+
+  function renderLibrary() {
+    $$("#libTabs .lib-tab").forEach((b) => { const on = b.dataset.t === libTab; b.classList.toggle("active", on); b.setAttribute("aria-selected", on); });
+    $("#libFilters").innerHTML = Object.entries(LIB_FILTERS[libTab]).map(([k, v]) =>
+      `<button class="chip ${k === libFilter ? "active" : ""}" data-lf="${esc(k)}">${esc(v)}</button>`).join("");
+    const items = LIBRARY[libTab].map((x, i) => ({ x, i }))
+      .filter(({ x }) => libFilter === "all" || libGroup(libTab, x) === libFilter)
+      .filter(({ x }) => !libQ || EkoLang.matches(libText(libTab, x), libQ));
+    $("#libGrid").innerHTML = items.length ? items.map(({ x, i }) => {
+      const read = state.read[readKey(libTab, i)] ? `<span class="read">✓ Ўқилди</span>` : "";
+      if (libTab === "animals") return `<button class="lib-card" data-lib="animals" data-i="${i}">${read}
+        <div class="em">${x.icon}</div>${statusBadge(x.status)}${x.success ? '<span class="ok-tag">🌱 Муваффақият тарихи</span>' : ""}
+        <h3>${esc(x.name)}</h3><div class="latin">${esc(x.latin)}</div><p>${esc(x.facts[0])}</p></button>`;
+      if (libTab === "books") return `<button class="lib-card" data-lib="books" data-i="${i}">${read}
+        <div class="cover">${x.icon}</div><span class="ok-tag">${esc(x.tag)}</span>
+        <h3>${esc(x.title)}</h3><div class="meta">${esc(x.author)} · ${x.year}</div><p>${esc(x.short)}</p></button>`;
+      return `<button class="lib-card" data-lib="laws" data-i="${i}">${read}
+        <div class="em">${x.icon}</div><span class="ok-tag">${esc(x.kind)} · ${x.year}</span>
+        <h3>${esc(x.title)}</h3><p>${esc(x.short)}</p></button>`;
+    }).join("") : `<p class="muted">Ҳеч нарса топилмади.</p>`;
+    const readN = Object.keys(state.read).length;
+    $("#libProgress").textContent = `Сиз кутубхонадаги ${libTotal} та материалдан ${readN} тасини ўқидингиз.`;
+    $("#libCount").textContent = libTotal;
+  }
+
+  function openLibItem(t, i) {
+    const x = LIBRARY[t][i];
+    let html;
+    if (t === "animals") {
+      const scale = ["LC", "NT", "VU", "EN", "CR", "EX"];
+      html = `
+        <span class="pill">🐾 Ноёб ҳайвонлар</span>
+        <h2>${x.icon} ${esc(x.name)}</h2>
+        <div class="latin muted"><i>${esc(x.latin)}</i></div>
+        ${x.status === "RB" ? `<p>${statusBadge("RB")}</p>` : `<div class="iucn" aria-label="IUCN мақоми">${scale.map((k) =>
+          `<span class="${k === x.status ? "on" : ""}" style="${k === x.status ? `background:${IUCN[k].color}` : ""}" title="${esc(IUCN[k].label)}">${k}</span>`).join("")}</div>
+          <p class="small muted">IUCN Қизил рўйхати мақоми: <b style="color:${IUCN[x.status].color}">${esc(IUCN[x.status].label)}</b></p>`}
+        ${x.success ? '<p><span class="ok-tag">🌱 Муваффақият тарихи — муҳофаза натижа берди</span></p>' : ""}
+        <dl class="kv"><dt>📍 Қаерда яшайди</dt><dd>${esc(x.where)}</dd><dt>📊 Сони</dt><dd>${esc(x.pop)}</dd></dl>
+        <h3>Биласизми?</h3>
+        <ul class="facts">${x.facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>
+        <dl class="kv"><dt>⚠️ Хавфлар</dt><dd>${esc(x.threats)}</dd><dt>🤝 Қандай ёрдам бериш мумкин</dt><dd>${esc(x.help)}</dd></dl>`;
+    } else if (t === "books") {
+      html = `
+        <span class="pill">📖 ${esc(x.tag)}</span>
+        <h2>${x.icon} ${esc(x.title)}</h2>
+        <p class="muted">${esc(x.author)} · ${x.year} · асл номи: <i>${esc(x.orig)}</i></p>
+        <div class="lesson-body">${x.body.map((b) => `<p>${esc(b)}</p>`).join("")}</div>
+        <div class="lesson-tip">💡 <b>Қизиқарли факт:</b> ${esc(x.fact)}</div>
+        <dl class="kv"><dt>👥 Кимлар учун</dt><dd>${esc(x.who)}</dd></dl>`;
+    } else {
+      html = `
+        <span class="pill">⚖️ ${esc(x.kind)} · ${x.year}</span>
+        <h2>${x.icon} ${esc(x.title)}</h2>
+        <div class="lesson-body">${x.body.map((b) => `<p>${esc(b)}</p>`).join("")}</div>
+        <div class="lesson-tip">📌 <b>Бу нимани англатади:</b> ${esc(x.matter)}</div>
+        <p class="note">Бу — қонуннинг оммабоп қисқача мазмуни, юридик маслаҳат эмас. Қонунларга вақти-вақти билан ўзгартиришлар киритилади; расмий ва амалдаги матнни Ўзбекистон қонунчилик маълумотлари миллий базаси — <a href="https://lex.uz" target="_blank" rel="noopener">lex.uz</a> сайтидан топинг.</p>`;
+    }
+    const n = LIBRARY[t].length;
+    modalBody.innerHTML = html + `
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-lib="${t}" data-i="${(i - 1 + n) % n}">← Олдинги</button>
+        <button class="btn btn-primary" data-lib="${t}" data-i="${(i + 1) % n}">Кейинги →</button>
+      </div>`;
+    const k = readKey(t, i);
+    if (!state.read[k]) {
+      state.read[k] = true;
+      addXp(5, "янги билим");
+    }
+    if (!modal.open) modal.showModal();
+    modal.scrollTop = 0;
+  }
+
+  $("#libTabs").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-t]");
+    if (!b) return;
+    libTab = b.dataset.t; libFilter = "all";
+    renderLibrary();
+  });
+  $("#libFilters").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lf]");
+    if (!b) return;
+    libFilter = b.dataset.lf;
+    renderLibrary();
+  });
+  $("#libSearch").addEventListener("input", (e) => { libQ = e.target.value.trim(); renderLibrary(); });
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lib]");
+    if (b) openLibItem(b.dataset.lib, +b.dataset.i);
+  });
+
   /* ---------- Ҳаво сифати (Open-Meteo, жонли) ---------- */
   const CITIES = [
     ["Тошкент", 41.31, 69.28], ["Самарқанд", 39.65, 66.96], ["Бухоро", 39.77, 64.42],
@@ -399,7 +515,10 @@
     { id: "s7", icon: "⚡", name: "7 кун серия", test: () => streak() >= 7 },
     { id: "calc", icon: "🧮", name: "Углерод ҳисобчиси", test: () => state.flags.calc },
     { id: "chat", icon: "💬", name: "Қизиқувчан", test: () => state.flags.chat },
-    { id: "air", icon: "🛰️", name: "Ҳаво кузатувчиси", test: () => state.flags.air }
+    { id: "air", icon: "🛰️", name: "Ҳаво кузатувчиси", test: () => state.flags.air },
+    { id: "reader", icon: "📚", name: "Китобхон", test: () => Object.keys(state.read).length >= 10 },
+    { id: "animals", icon: "🐾", name: "Ҳайвонлар дўсти", test: () => LIBRARY.animals.every((_, i) => state.read[readKey("animals", i)]) },
+    { id: "law", icon: "⚖️", name: "Эко-ҳуқуқшунос", test: () => LIBRARY.laws.every((_, i) => state.read[readKey("laws", i)]) }
   ];
 
   function renderGamification() {
@@ -471,12 +590,14 @@
   $("#resetBtn").addEventListener("click", () => {
     if (!confirm(T("Барча натижалар (XP, дарслар, челленжлар) ўчирилади. Давом этасизми?"))) return;
     state = fresh(); save();
-    renderCourses(); renderChallenges(); renderGamification();
+    renderCourses(); renderChallenges(); renderLibrary(); renderGamification();
     toast("Натижалар тозаланди");
   });
 
   renderCourses();
   renderNews();
+  renderLibFeature();
+  renderLibrary();
   calc();
   renderChallenges();
   renderGamification();
