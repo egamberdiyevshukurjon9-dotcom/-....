@@ -1,0 +1,48 @@
+name: Вазирлик маълумотларини янгилаш
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"   # ҳар 3 соатда (UTC)
+  workflow_dispatch:          # Actions саҳифасидан қўлда ишга тушириш
+  push:
+    branches: [main]
+    paths:
+      - data/ministry_sources.json
+      - data/ministry_manual.json
+      - tools/fetch_ministry.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ministry-feed
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Тестлар
+        run: python3 -m unittest discover -s tools
+
+      - name: Манбалардан маълумот йиғиш
+        run: python3 tools/fetch_ministry.py
+
+      - name: Ўзгариш бўлса, сақлаш
+        run: |
+          if git diff --quiet -- data/ministry.json; then
+            echo "Ўзгариш йўқ"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add data/ministry.json
+          git commit -m "Вазирлик маълумотлари янгиланди"
+          git push

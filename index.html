@@ -117,6 +117,24 @@
           <h2 class="section-title">Энг сўнгги янгиликлар</h2>
           <input class="search" id="newsSearch" type="search" placeholder="🔍 Янгиликлардан излаш…">
         </div>
+        <div class="gov-panel" id="govPanel">
+          <div class="gov-head">
+            <div>
+              <span class="gov-live"><i></i>Расмий манба</span>
+              <h3>🏛️ Экология вазирлигидан сўнгги маълумотлар</h3>
+              <p class="muted small" id="govMeta"></p>
+            </div>
+            <button class="btn btn-ghost" id="govRefresh" aria-label="Вазирлик маълумотларини янгилаш">↻ Янгилаш</button>
+          </div>
+          <div class="gov-list" id="govList"><p class="muted">Юкланмоқда…</p></div>
+          <div class="gov-foot">
+            <button class="linklike" id="govMore" hidden></button>
+            <span class="gov-links">Расмий сайтлар:
+              <a href="https://eco.gov.uz" target="_blank" rel="noopener noreferrer">eco.gov.uz</a> ·
+              <a href="https://lex.uz" target="_blank" rel="noopener noreferrer">lex.uz</a></span>
+          </div>
+        </div>
+        <h3 class="sub">Платформа янгиликлари</h3>
         <div class="filters" id="newsFilters"></div>
         <div class="news-grid" id="newsGrid"></div>
       </div>

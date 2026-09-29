@@ -266,6 +266,61 @@
     }).join("") : `<p class="muted">Ҳеч нарса топилмади.</p>`;
   }
 
+  /* ---------- Экология вазирлиги панели ---------- */
+  const GOV_SRC = { site: "🌐 Сайт", telegram: "✈️ Telegram", manual: "📌 Расмий" };
+  const GOV_SHOW = 6;
+  let gov = null, govAll = false;
+  const fmtTashkent = (s) => new Date(s).toLocaleString("ru-RU", { timeZone: "Asia/Tashkent", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  async function loadGov() {
+    $("#govList").innerHTML = `<p class="muted">Юкланмоқда…</p>`;
+    try {
+      const r = await fetch("data/ministry.json", { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      gov = await r.json();
+    } catch (e) {
+      gov = window.MINISTRY_SNAPSHOT || null; // битта HTML файл режими
+    }
+    renderGov();
+  }
+
+  function renderGov() {
+    const items = ((gov && gov.items) || []).filter((i) => /^https:\/\//.test(i.url || "") && i.title);
+    const src = (gov && gov.sources) || [];
+    const meta = [];
+    if (gov && gov.updated) {
+      meta.push(`Охирги ўзгариш: ${fmtTashkent(gov.updated)}`);
+      const age = (Date.now() - new Date(gov.updated)) / 864e5;
+      if (age > 7) meta.push(`<span class="gov-warn">⚠️ маълумот ${Math.floor(age)} кундан бери янгиланмаган</span>`);
+    }
+    if (src.length) meta.push("Манбалар: " + src.map((s) => `${esc(s.name)} ${s.ok ? "✓" : "✗"}`).join(", "));
+    $("#govMeta").innerHTML = meta.join(" · ");
+
+    if (!items.length) {
+      const failed = src.filter((s) => !s.ok).length;
+      $("#govList").innerHTML = `<div class="gov-empty">
+        <b>${failed ? "Вазирлик манбаларидан маълумот олиб бўлмади." : "Вазирликдан маълумотлар ҳали йиғилмаган."}</b><br>
+        Маълумотлар ҳар 3 соатда автоматик равишда вазирликнинг расмий манбаларидан олинади ва шу ерда кўрсатилади.
+        Ҳозирча энг сўнгги хабарларни расмий сайтдан ўқинг: <a href="https://eco.gov.uz" target="_blank" rel="noopener noreferrer">eco.gov.uz</a>.
+      </div>`;
+      $("#govMore").hidden = true;
+      return;
+    }
+    const now = Date.now();
+    $("#govList").innerHTML = items.slice(0, govAll ? items.length : GOV_SHOW).map((i) => {
+      const fresh = i.date && now - new Date(i.date) < 2 * 864e5;
+      return `<a class="gov-item" href="${esc(i.url)}" target="_blank" rel="noopener noreferrer">
+        <span class="news-meta"><span class="tag">${esc(GOV_SRC[i.source] || "🏛️")}</span>${i.date ? `<span>${fmtTashkent(i.date)}</span>` : ""}${fresh ? '<span class="new">ЯНГИ</span>' : ""}</span>
+        <b>${esc(i.title)}</b>${i.summary ? `<p>${esc(i.summary)}</p>` : ""}
+        <span class="go">Манбада ўқиш ↗</span></a>`;
+    }).join("");
+    const more = $("#govMore");
+    more.hidden = items.length <= GOV_SHOW;
+    more.textContent = govAll ? "Камроқ кўрсатиш" : `Барчасини кўрсатиш (${items.length})`;
+  }
+  $("#govMore").addEventListener("click", () => { govAll = !govAll; renderGov(); });
+  $("#govRefresh").addEventListener("click", loadGov);
+
   /* ---------- Эко-кутубхона ---------- */
   const LIB_FILTERS = {
     animals: { all: "Барчаси", uz: "Ўзбекистон", world: "Дунё" },
@@ -596,6 +651,7 @@
 
   renderCourses();
   renderNews();
+  loadGov();
   renderLibFeature();
   renderLibrary();
   calc();

@@ -5,6 +5,7 @@
 Андоза чиқиш файли: dist/EkoTalim.html
 """
 import base64
+import json
 import pathlib
 import sys
 
@@ -29,6 +30,10 @@ def main():
         code = read(path)
         if "</script" in code.lower():
             sys.exit(f"{path}: ичида '</script' бўлмаслиги керак")
+        if path == "js/app.js":
+            # Вазирлик маълумотларининг нусхаси: файлдан очилганда fetch ишламайди
+            snapshot = json.dumps(json.loads(read("data/ministry.json")), ensure_ascii=False).replace("</", "<\\/")
+            code = f"window.MINISTRY_SNAPSHOT = {snapshot};\n" + code
         replacements.append((f'<script src="{path}"></script>', "<script>\n" + code + "</script>"))
     for old, new in replacements:
         if old not in html:

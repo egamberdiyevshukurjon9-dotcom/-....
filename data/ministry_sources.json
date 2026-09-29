@@ -1,0 +1,9 @@
+{
+  "_изоҳ": "Экология вазирлиги манбалари. tools/fetch_ministry.py шу файлни ўқийди. Telegram каналини ёқиш учун расмий канал номини (@ белгисиз) 'channel' га ёзинг ва 'enabled': true қилинг.",
+  "max_items": 24,
+  "allowed_hosts": ["eco.gov.uz", "gov.uz", "t.me"],
+  "sources": [
+    { "id": "site", "type": "website", "name": "eco.gov.uz", "url": "https://eco.gov.uz/uz", "enabled": true },
+    { "id": "telegram", "type": "telegram", "name": "Telegram канали", "channel": "", "enabled": false }
+  ]
+}
