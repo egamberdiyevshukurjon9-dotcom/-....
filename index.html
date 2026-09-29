@@ -1,24 +1,131 @@
-<!doctype html>
-<html lang="uz-Cyrl">
+<!DOCTYPE html>
+<html lang="uz-Cyrl" dir="ltr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://air-quality-api.open-meteo.com; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>ЭкоТаълим — экологик таълим платформаси</title>
   <meta name="description" content="Аҳоли, корхоналар ва таълим муассасалари учун бепул экологик таълим платформаси: курслар, тестлар, янгиликлар, ҳаво сифати ва углерод калькулятори.">
-  <meta name="theme-color" content="#15803d">
+  <meta name="theme-color" content="#15803d" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1510" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ЭкоТаълим">
+  <meta property="og:title" content="ЭкоТаълим — экологик таълим платформаси">
+  <meta property="og:description" content="Бепул экологик курслар, эко-кутубхона, ҳаво сифати мониторинги ва углерод калькулятори.">
+  <meta property="og:locale" content="uz_UZ">
+  <meta name="twitter:card" content="summary">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="preload" href="fonts/inter-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "name": "ЭкоТаълим",
+        "description": "Аҳоли, корхоналар ва таълим муассасалари учун бепул экологик таълим платформаси",
+        "inLanguage": [
+          "uz-Cyrl",
+          "uz-Latn"
+        ],
+        "isAccessibleForFree": true
+      },
+      {
+        "@type": "Course",
+        "name": "Экология асослари",
+        "description": "Экотизим, иқлим ўзгариши, сувни тежаш ва чиқиндиларни саралаш бўйича оммабоп курс.",
+        "inLanguage": [
+          "uz-Cyrl",
+          "uz-Latn"
+        ],
+        "isAccessibleForFree": true,
+        "educationalLevel": "Beginner",
+        "teaches": "Экологик саводхонлик",
+        "provider": {
+          "@type": "Organization",
+          "name": "ЭкоТаълим"
+        },
+        "hasCourseInstance": {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "PT30M"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 0,
+          "priceCurrency": "UZS",
+          "category": "Free"
+        }
+      },
+      {
+        "@type": "Course",
+        "name": "Корхонада экологик менежмент",
+        "description": "ISO 14001, энергия самарадорлиги, айланма иқтисодиёт ва ESG ҳисоботлари.",
+        "inLanguage": [
+          "uz-Cyrl",
+          "uz-Latn"
+        ],
+        "isAccessibleForFree": true,
+        "educationalLevel": "Intermediate",
+        "teaches": "Экологик менежмент",
+        "provider": {
+          "@type": "Organization",
+          "name": "ЭкоТаълим"
+        },
+        "hasCourseInstance": {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "PT30M"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 0,
+          "priceCurrency": "UZS",
+          "category": "Free"
+        }
+      },
+      {
+        "@type": "Course",
+        "name": "Барқарор ривожланиш ва яшил технологиялар",
+        "description": "БМТ Барқарор ривожланиш мақсадлари, Орол муаммоси, яшил технологиялар ва тадқиқот лойиҳаси.",
+        "inLanguage": [
+          "uz-Cyrl",
+          "uz-Latn"
+        ],
+        "isAccessibleForFree": true,
+        "educationalLevel": "Beginner",
+        "teaches": "Барқарор ривожланиш учун таълим",
+        "provider": {
+          "@type": "Organization",
+          "name": "ЭкоТаълим"
+        },
+        "hasCourseInstance": {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "PT30M"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 0,
+          "priceCurrency": "UZS",
+          "category": "Free"
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Асосий мазмунга ўтиш</a>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <a class="brand" href="#bosh"><span class="brand-logo">🌿</span><span class="brand-name">ЭкоТаълим</span></a>
-      <button class="menu-btn" id="menuBtn" aria-label="Меню" aria-expanded="false">☰</button>
-      <nav class="nav" id="nav">
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="Меню" aria-controls="nav" aria-expanded="false">☰</button>
+      <nav class="nav" id="nav" aria-label="Асосий бўлимлар">
         <a href="#kurslar">Курслар</a>
         <a href="#yangiliklar">Янгиликлар</a>
         <a href="#kutubxona">Кутубхона</a>
@@ -27,16 +134,16 @@
         <a href="#chellenj">Челленж</a>
         <a href="#yordamchi">Ёрдамчи</a>
       </nav>
-      <div class="user-chip" id="userChip" title="Сизнинг даражангиз">
+      <div class="user-chip" id="userChip" title="Сизнинг даражангиз" role="status">
         <span id="levelIcon">🌰</span>
         <span><b id="xpVal">0</b> XP</span>
       </div>
-      <button class="lang-btn" id="langBtn" data-notr aria-label="Lotin alifbosiga oʻtish">Lotin</button>
-      <button class="theme-btn" id="themeBtn" aria-label="Мавзуни алмаштириш">🌓</button>
+      <button class="lang-btn" id="langBtn" type="button" data-notr aria-label="Lotin alifbosiga oʻtish">Lotin</button>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Мавзуни алмаштириш">🌓</button>
     </div>
   </header>
 
-  <main>
+  <main id="main" tabindex="-1">
     <!-- HERO -->
     <section class="hero" id="bosh">
       <div class="wrap hero-grid">
@@ -49,7 +156,7 @@
             <a class="btn btn-ghost" href="#kalkulyator">Углерод изимни ҳисоблаш</a>
           </div>
           <div class="tip-card">
-            <span class="tip-icon">💡</span>
+            <span class="tip-icon" aria-hidden="true">💡</span>
             <div><b>Кун маслаҳати:</b> <span id="dailyTip"></span></div>
           </div>
         </div>
@@ -99,11 +206,11 @@
       <div class="wrap">
         <div class="section-head">
           <h2 class="section-title">Курслар</h2>
-          <div class="filters" id="courseFilters">
-            <button class="chip active" data-f="all">Барчаси</button>
-            <button class="chip" data-f="aholi">Аҳоли</button>
-            <button class="chip" data-f="korxona">Корхона</button>
-            <button class="chip" data-f="talaba">Таълим</button>
+          <div class="filters" id="courseFilters" role="group" aria-label="Курсларни филтрлаш">
+            <button class="chip active" data-f="all" type="button" aria-pressed="true">Барчаси</button>
+            <button class="chip" data-f="aholi" type="button" aria-pressed="false">Аҳоли</button>
+            <button class="chip" data-f="korxona" type="button" aria-pressed="false">Корхона</button>
+            <button class="chip" data-f="talaba" type="button" aria-pressed="false">Таълим</button>
           </div>
         </div>
         <div class="course-grid" id="courseGrid"></div>
@@ -115,25 +222,25 @@
       <div class="wrap">
         <div class="section-head">
           <h2 class="section-title">Энг сўнгги янгиликлар</h2>
-          <input class="search" id="newsSearch" type="search" placeholder="🔍 Янгиликлардан излаш…">
+          <input class="search" id="newsSearch" type="search" aria-label="Янгиликлардан излаш" placeholder="🔍 Янгиликлардан излаш…">
         </div>
-        <div class="gov-panel" id="govPanel">
+        <section class="gov-panel" id="govPanel" aria-labelledby="govTitle">
           <div class="gov-head">
             <div>
-              <span class="gov-live"><i></i>Расмий манба</span>
-              <h3>🏛️ Экология вазирлигидан сўнгги маълумотлар</h3>
+              <span class="gov-live"><i aria-hidden="true"></i>Расмий манба</span>
+              <h3 id="govTitle">🏛️ Экология вазирлигидан сўнгги маълумотлар</h3>
               <p class="muted small" id="govMeta"></p>
             </div>
-            <button class="btn btn-ghost" id="govRefresh" aria-label="Вазирлик маълумотларини янгилаш">↻ Янгилаш</button>
+            <button class="btn btn-ghost" id="govRefresh" type="button" aria-label="Вазирлик маълумотларини янгилаш">↻ Янгилаш</button>
           </div>
-          <div class="gov-list" id="govList"><p class="muted">Юкланмоқда…</p></div>
+          <div class="gov-list" id="govList" aria-live="polite"><p class="muted">Юкланмоқда…</p></div>
           <div class="gov-foot">
-            <button class="linklike" id="govMore" hidden></button>
+            <button class="linklike" id="govMore" type="button" hidden></button>
             <span class="gov-links">Расмий сайтлар:
               <a href="https://eco.gov.uz" target="_blank" rel="noopener noreferrer">eco.gov.uz</a> ·
               <a href="https://lex.uz" target="_blank" rel="noopener noreferrer">lex.uz</a></span>
           </div>
-        </div>
+        </section>
         <h3 class="sub">Платформа янгиликлари</h3>
         <div class="filters" id="newsFilters"></div>
         <div class="news-grid" id="newsGrid"></div>
@@ -148,16 +255,18 @@
             <h2 class="section-title">📚 Эко-кутубхона</h2>
             <p class="muted">Йўқолиб бораётган ҳайвонлар, экологияга оид машҳур китоблар ва қонунлар ҳақида қизиқарли маълумотлар. Ҳар бир янги материал учун +5 XP.</p>
           </div>
-          <input class="search" id="libSearch" type="search" placeholder="🔍 Кутубхонадан излаш…">
+          <input class="search" id="libSearch" type="search" aria-label="Кутубхонадан излаш" placeholder="🔍 Кутубхонадан излаш…">
         </div>
         <div class="lib-feature" id="libFeature"></div>
-        <div class="lib-tabs" role="tablist" id="libTabs">
-          <button class="lib-tab active" role="tab" aria-selected="true" data-t="animals">🐾 Ноёб ҳайвонлар</button>
-          <button class="lib-tab" role="tab" aria-selected="false" data-t="books">📖 Китоблар</button>
-          <button class="lib-tab" role="tab" aria-selected="false" data-t="laws">⚖️ Қонунлар</button>
+        <div class="lib-tabs" role="tablist" id="libTabs" aria-label="Кутубхона бўлимлари">
+          <button class="lib-tab active" type="button" role="tab" id="tab-animals" aria-controls="libPanel" aria-selected="true" tabindex="0" data-t="animals">🐾 Ноёб ҳайвонлар</button>
+          <button class="lib-tab" type="button" role="tab" id="tab-books" aria-controls="libPanel" aria-selected="false" tabindex="-1" data-t="books">📖 Китоблар</button>
+          <button class="lib-tab" type="button" role="tab" id="tab-laws" aria-controls="libPanel" aria-selected="false" tabindex="-1" data-t="laws">⚖️ Қонунлар</button>
         </div>
-        <div class="filters" id="libFilters"></div>
-        <div class="lib-grid" id="libGrid"></div>
+        <div id="libPanel" role="tabpanel" aria-labelledby="tab-animals">
+          <div class="filters" id="libFilters" role="group" aria-label="Филтр"></div>
+          <div class="lib-grid" id="libGrid"></div>
+        </div>
         <p class="muted small" id="libProgress"></p>
       </div>
     </section>
@@ -170,16 +279,16 @@
             <h2 class="section-title">Ҳаво сифати — жонли</h2>
             <p class="muted">Ўзбекистон шаҳарлари бўйича PM2.5, PM10 ва AQI индекси. Маълумот манбаи: Open-Meteo / Copernicus (CAMS), ҳар соатда янгиланади.</p>
           </div>
-          <button class="btn btn-ghost" id="aqRefresh">↻ Янгилаш</button>
+          <button class="btn btn-ghost" id="aqRefresh" type="button">↻ Янгилаш</button>
         </div>
-        <div class="aq-legend">
-          <span><i style="background:#22c55e"></i>Яхши (0–50)</span>
-          <span><i style="background:#eab308"></i>Ўртача (51–100)</span>
-          <span><i style="background:#f97316"></i>Сезгирлар учун зарарли (101–150)</span>
-          <span><i style="background:#ef4444"></i>Зарарли (151–200)</span>
-          <span><i style="background:#a855f7"></i>Жуда зарарли (201+)</span>
-        </div>
-        <div class="aq-grid" id="aqGrid"><p class="muted">Юкланмоқда…</p></div>
+        <ul class="aq-legend" aria-label="AQI шкаласи (US EPA)">
+          <li><i class="aq1" aria-hidden="true"></i>Яхши (0–50)</li>
+          <li><i class="aq2" aria-hidden="true"></i>Ўртача (51–100)</li>
+          <li><i class="aq3" aria-hidden="true"></i>Сезгирлар учун зарарли (101–150)</li>
+          <li><i class="aq4" aria-hidden="true"></i>Зарарли (151–200)</li>
+          <li><i class="aq5" aria-hidden="true"></i>Жуда зарарли (201+)</li>
+        </ul>
+        <div class="aq-grid" id="aqGrid" aria-live="polite"><p class="muted">Юкланмоқда…</p></div>
         <p class="muted small" id="aqTime"></p>
       </div>
     </section>
@@ -190,36 +299,41 @@
         <h2 class="section-title">Углерод изи калькулятори</h2>
         <p class="muted">Йиллик шахсий CO₂ чиқиндингизни тахминий ҳисобланг ва уни камайтириш бўйича шахсий тавсиялар олинг.</p>
         <div class="calc">
-          <form id="calcForm" class="calc-form">
-            <label>Ойлик электр сарфи (кВт·соат)
-              <input type="range" name="elec" min="0" max="800" step="10" value="200"><output>200</output>
-            </label>
-            <label>Ойлик табиий газ сарфи (м³)
-              <input type="range" name="gas" min="0" max="500" step="10" value="100"><output>100</output>
-            </label>
-            <label>Ҳафталик автомобилда юриш (км)
-              <input type="range" name="car" min="0" max="1000" step="10" value="100"><output>100</output>
-            </label>
-            <label>Йилига самолётда парвозлар сони
-              <input type="range" name="fly" min="0" max="20" step="1" value="1"><output>1</output>
-            </label>
-            <label>Овқатланиш тури
-              <select name="diet">
+          <div id="calcForm" class="calc-form" role="group" aria-label="Углерод изи маълумотлари">
+            <div class="field">
+              <label for="cElec">Ойлик электр сарфи (кВт·соат)</label><output for="cElec">200</output>
+              <input type="range" id="cElec" name="elec" min="0" max="800" step="10" value="200">
+            </div>
+            <div class="field">
+              <label for="cGas">Ойлик табиий газ сарфи (м³)</label><output for="cGas">100</output>
+              <input type="range" id="cGas" name="gas" min="0" max="500" step="10" value="100">
+            </div>
+            <div class="field">
+              <label for="cCar">Ҳафталик автомобилда юриш (км)</label><output for="cCar">100</output>
+              <input type="range" id="cCar" name="car" min="0" max="1000" step="10" value="100">
+            </div>
+            <div class="field">
+              <label for="cFly">Йилига самолётда парвозлар сони</label><output for="cFly">1</output>
+              <input type="range" id="cFly" name="fly" min="0" max="20" step="1" value="1">
+            </div>
+            <div class="field">
+              <label for="cDiet">Овқатланиш тури</label>
+              <select id="cDiet" name="diet">
                 <option value="2500">Гўшт кўп</option>
                 <option value="1900" selected>Аралаш</option>
                 <option value="1500">Гўшт кам</option>
                 <option value="1100">Вегетариан</option>
               </select>
-            </label>
-            <label class="check"><input type="checkbox" name="recycle"> Чиқиндиларни саралайман</label>
-          </form>
+            </div>
+            <div class="check"><input type="checkbox" id="cRecycle" name="recycle"><label for="cRecycle">Чиқиндиларни саралайман</label></div>
+          </div>
           <div class="calc-result">
             <div class="gauge">
               <svg viewBox="0 0 200 120" aria-hidden="true">
                 <path d="M20 110 A80 80 0 0 1 180 110" class="gauge-bg"/>
                 <path d="M20 110 A80 80 0 0 1 180 110" class="gauge-val" id="gaugeVal"/>
               </svg>
-              <div class="gauge-num"><b id="calcTotal">0</b><span>тонна CO₂ / йил</span></div>
+              <div class="gauge-num" aria-live="polite"><b id="calcTotal">0</b><span>тонна CO₂ / йил</span></div>
             </div>
             <div class="bars" id="calcBars"></div>
             <p class="muted small">Таққослаш учун: дунё бўйича ўртача ≈ 4,7 т; Париж келишуви мақсадларига мос даража ≈ 2 т. Коэффициентлар тахминий.</p>
@@ -237,15 +351,15 @@
             <h2 class="section-title">Кунлик эко-челленж</h2>
             <p class="muted">Ҳар куни яшил одатларни белгиланг, XP тўпланг ва кетма-кет кунлар сериясини узайтиринг.</p>
           </div>
-          <div class="streak"><span>🔥</span><b id="streakVal">0</b> кун серия</div>
+          <div class="streak"><span aria-hidden="true">🔥</span><b id="streakVal">0</b> кун серия</div>
         </div>
-        <div class="ch-grid" id="chGrid"></div>
+        <div class="ch-grid" id="chGrid" role="group" aria-label="Бугунги яшил одатлар"></div>
         <h3 class="sub">Нишонлар</h3>
-        <div class="badges" id="badges"></div>
+        <ul class="badges" id="badges"></ul>
         <h3 class="sub">Даражангиз</h3>
         <div class="level-box">
           <div class="level-name" id="levelName"></div>
-          <div class="progress"><div id="levelBar"></div></div>
+          <progress class="pbar" id="levelBar" max="100" value="0" aria-label="Кейинги даражагача"></progress>
           <p class="muted small" id="levelNext"></p>
         </div>
       </div>
@@ -257,10 +371,10 @@
         <h2 class="section-title">Эко-ёрдамчи</h2>
         <p class="muted">Экология бўйича саволингизни ёзинг: пластик, сув, ҳаво, чиқиндилар, корхона, ISO 14001, дарахт экиш ва бошқалар.</p>
         <div class="chat">
-          <div class="chat-log" id="chatLog" aria-live="polite"></div>
+          <div class="chat-log" id="chatLog" role="log" aria-live="polite" aria-label="Эко-ёрдамчи суҳбати" tabindex="0"></div>
           <div class="chat-suggest" id="chatSuggest"></div>
-          <form class="chat-form" id="chatForm">
-            <input id="chatInput" placeholder="Саволингизни ёзинг…" autocomplete="off">
+          <form class="chat-form" id="chatForm" action="#">
+            <input id="chatInput" type="text" aria-label="Саволингиз" placeholder="Саволингизни ёзинг…" autocomplete="off" maxlength="300">
             <button class="btn btn-primary" type="submit">Юбориш</button>
           </form>
         </div>
@@ -274,21 +388,23 @@
         <b>🌿 ЭкоТаълим</b>
         <p class="muted small">Экологик маданиятни ошириш учун очиқ таълим платформаси. Барча материаллар бепул.</p>
       </div>
-      <div class="small muted">
-        <button class="linklike" id="resetBtn">Натижаларимни тозалаш</button>
+      <div class="small muted footer-links">
+        <button class="linklike" id="privacyBtn" type="button">Махфийлик ва маълумотлар</button>
+        <button class="linklike" id="a11yBtn" type="button">Қулайлик баёноти</button>
+        <button class="linklike" id="resetBtn" type="button">Натижаларимни тозалаш</button>
       </div>
     </div>
   </footer>
 
   <!-- LESSON MODAL -->
-  <dialog class="modal" id="lessonModal">
+  <dialog class="modal" id="lessonModal" aria-labelledby="modalTitle">
     <div class="modal-inner">
-      <button class="modal-close" id="modalClose" aria-label="Ёпиш">✕</button>
+      <button class="modal-close" id="modalClose" type="button" aria-label="Ёпиш">✕</button>
       <div id="modalBody"></div>
     </div>
   </dialog>
 
-  <div class="toast" id="toast" role="status"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/translit.js"></script>
   <script src="js/data.js"></script>

@@ -1,0 +1,41 @@
+name: Сифат ва стандартлар
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Боғлиқликлар
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Python тестлари (вазирлик маълумотлари)
+        run: python3 -m unittest discover -s tools
+
+      - name: W3C HTML валидлиги (html-validate)
+        run: npm run lint:html
+
+      - name: WCAG 2.2 AA ва CSP (axe-core + Playwright)
+        run: npm run test:a11y
+
+      - name: Битта HTML файл йиғилиши
+        run: python3 tools/build_single_html.py

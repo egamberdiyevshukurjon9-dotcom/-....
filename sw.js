@@ -1,6 +1,8 @@
 /* ЭкоТаълим — офлайн иш учун service worker */
-const CACHE = "ekotalim-v4";
-const ASSETS = ["./", "index.html", "css/style.css", "js/translit.js", "js/data.js", "js/library.js", "js/app.js", "data/ministry.json", "manifest.json", "icon.svg"];
+const CACHE = "ekotalim-v5";
+const ASSETS = ["./", "index.html", "css/style.css", "js/translit.js", "js/data.js", "js/library.js", "js/app.js", "data/ministry.json", "manifest.json", "icon.svg",
+  "icons/icon-192.png", "icons/icon-512.png", "fonts/inter-latin-wght-normal.woff2", "fonts/inter-latin-ext-wght-normal.woff2",
+  "fonts/inter-cyrillic-wght-normal.woff2", "fonts/inter-cyrillic-ext-wght-normal.woff2"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

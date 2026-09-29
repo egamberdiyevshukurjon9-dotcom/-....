@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Бутун платформани битта мустақил HTML файлга йиғади (серверсиз очиш учун).
 
+Эслатма: шрифтлар файлга қўшилмайди (ҳажм кичик бўлиши учун) — тизим шрифти ишлатилади.
+
 Ишлатиш:  python3 tools/build_single_html.py [чиқиш_файли]
 Андоза чиқиш файли: dist/EkoTalim.html
 """
 import base64
 import json
 import pathlib
+import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -21,7 +24,15 @@ def main():
     out = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "dist" / "EkoTalim.html"
     html = read("index.html")
     icon = "data:image/svg+xml;base64," + base64.b64encode((ROOT / "icon.svg").read_bytes()).decode()
+    # Битта файлда скриптлар ичкарида бўлгани учун CSP 'unsafe-inline' га рухсат беради
+    csp_old = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', html)
+    if not csp_old:
+        sys.exit("index.html ичида CSP топилмади")
+    csp_new = csp_old.group(1).replace("script-src 'self'", "script-src 'self' 'unsafe-inline'")
     replacements = [
+        (csp_old.group(0), f'<meta http-equiv="Content-Security-Policy" content="{csp_new}">'),
+        ('  <link rel="preload" href="fonts/inter-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>\n', ""),
+        ('  <link rel="apple-touch-icon" href="icons/icon-180.png">\n', ""),
         ('<link rel="stylesheet" href="css/style.css">', "<style>\n" + read("css/style.css") + "</style>"),
         ('<link rel="manifest" href="manifest.json">\n', ""),
         ('href="icon.svg"', f'href="{icon}"'),

@@ -61,17 +61,18 @@
         <div class="course-top"><div class="course-icon">${c.icon}</div><span class="pill">${esc(c.audienceLabel)}</span></div>
         <h3>${esc(c.title)}</h3>
         <p>${esc(c.desc)}</p>
-        <div class="progress" title="${pct}%"><div style="width:${pct}%"></div></div>
+        <ul class="sdg-list" aria-label="БМТ Барқарор ривожланиш мақсадлари">${(c.sdg || []).map((n) => `<li class="sdg sdg-${n}" title="${esc(SDG[n])}">БРМ ${n}</li>`).join("")}</ul>
+        <progress class="pbar" max="100" value="${pct}" aria-label="${esc(c.title)}: ${pct}%"></progress>
         <span class="small muted">${p.done} / ${p.total} дарс тугатилди</span>
         <ul class="lesson-list">${c.lessons.map((l, i) => `
-          <li><button data-c="${c.id}" data-l="${i}">
-            <span class="${lessonDone(c.id, i) ? "done" : ""}">${lessonDone(c.id, i) ? "✓" : i + 1}</span>
+          <li><button type="button" data-c="${c.id}" data-l="${i}">
+            <span class="${lessonDone(c.id, i) ? "done" : ""}">${lessonDone(c.id, i) ? '✓<span class="sr-only"> тугатилган:</span>' : i + 1}</span>
             ${esc(l.title)}<span class="mins">${l.minutes} дақ</span>
           </button></li>`).join("")}
         </ul>
         ${complete
-          ? `<button class="btn btn-primary" data-cert="${c.id}">🏆 Сертификат олиш</button>`
-          : `<button class="btn btn-ghost" data-c="${c.id}" data-l="${c.lessons.findIndex((_, i) => !lessonDone(c.id, i))}">${p.done ? "Давом эттириш" : "Бошлаш"} →</button>`}
+          ? `<button type="button" class="btn btn-primary" data-cert="${c.id}">🏆 Сертификат олиш</button>`
+          : `<button type="button" class="btn btn-ghost" data-c="${c.id}" data-l="${c.lessons.findIndex((_, i) => !lessonDone(c.id, i))}">${p.done ? "Давом эттириш" : "Бошлаш"} →</button>`}
       </article>`;
     }).join("");
 
@@ -84,7 +85,7 @@
     const b = e.target.closest("[data-f]");
     if (!b) return;
     courseFilter = b.dataset.f;
-    $$("#courseFilters .chip").forEach((x) => x.classList.toggle("active", x === b));
+    $$("#courseFilters .chip").forEach((x) => { x.classList.toggle("active", x === b); x.setAttribute("aria-pressed", x === b); });
     renderCourses();
   });
 
@@ -97,9 +98,30 @@
 
   const modal = $("#lessonModal");
   const modalBody = $("#modalBody");
+  let opener = null; // ойна ёпилганда фокус қайтадиган элемент (WCAG 2.4.3)
+  function openModal() {
+    const h = modalBody.querySelector("h2");
+    if (h) h.id = "modalTitle";
+    if (!modal.open) {
+      const a = document.activeElement;
+      opener = a && a !== document.body ? { el: a, attrs: ["id", "data-lib", "data-i", "data-c", "data-l", "data-cert"].filter((k) => a.hasAttribute(k)).map((k) => [k, a.getAttribute(k)]) } : null;
+      modal.showModal();
+    }
+    modal.scrollTop = 0;
+  }
+  function restoreFocus() {
+    if (!opener) return;
+    let el = opener.el;
+    if (!el.isConnected && opener.attrs.length) {
+      // рўйхат қайта чизилган бўлса, худди шу атрибутли янги элементни топамиз
+      el = document.querySelector(opener.attrs.map(([k, v]) => `[${k}="${CSS.escape(v)}"]`).join(""));
+    }
+    if (el && el.isConnected) el.focus();
+    opener = null;
+  }
   $("#modalClose").addEventListener("click", () => modal.close());
   modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
-  modal.addEventListener("close", () => { renderCourses(); renderLibrary(); });
+  modal.addEventListener("close", () => { renderCourses(); renderLibrary(); restoreFocus(); });
 
   function openLesson(cid, li) {
     const course = COURSES.find((c) => c.id === cid);
@@ -115,13 +137,13 @@
         ${lesson.quiz.map((q, qi) => `
           <div class="q" data-q="${qi}">
             <p>${qi + 1}. ${esc(q.q)}</p>
-            <div class="opts">${q.a.map((a, ai) => `<button class="opt" data-a="${ai}">${esc(a)}</button>`).join("")}</div>
+            <div class="opts">${q.a.map((a, ai) => `<button type="button" class="opt" data-a="${ai}">${esc(a)}</button>`).join("")}</div>
           </div>`).join("")}
-        <p id="quizResult" class="muted"></p>
+        <p id="quizResult" class="muted" aria-live="polite"></p>
       </div>
       <div class="modal-actions">
-        <button class="btn btn-ghost" id="prevL" ${li === 0 ? "disabled" : ""}>← Олдинги</button>
-        <button class="btn btn-primary" id="nextL">${li === course.lessons.length - 1 ? "Курсни якунлаш" : "Кейинги дарс →"}</button>
+        <button type="button" class="btn btn-ghost" id="prevL" ${li === 0 ? "disabled" : ""}>← Олдинги</button>
+        <button type="button" class="btn btn-primary" id="nextL">${li === course.lessons.length - 1 ? "Курсни якунлаш" : "Кейинги дарс →"}</button>
       </div>`;
 
     $$(".q", modalBody).forEach((qEl) => {
@@ -133,7 +155,7 @@
         const q = lesson.quiz[qi];
         $$(".opt", qEl).forEach((o, i) => {
           o.disabled = true;
-          if (i === q.c) o.classList.add("right");
+          if (i === q.c) { o.classList.add("right"); o.insertAdjacentHTML("afterbegin", '<span aria-hidden="true">✓ </span><span class="sr-only">Тўғри жавоб: </span>'); }
         });
         answered[qi] = ai === q.c;
         if (ai === q.c) {
@@ -141,6 +163,7 @@
           if (!state.correct[k]) { state.correct[k] = true; addXp(10, "тўғри жавоб"); }
         } else {
           opt.classList.add("wrong");
+          opt.insertAdjacentHTML("afterbegin", '<span aria-hidden="true">✗ </span><span class="sr-only">Сизнинг жавобингиз, нотўғри: </span>');
         }
         if (Object.keys(answered).length === lesson.quiz.length) finishQuiz();
       });
@@ -156,7 +179,7 @@
         const p = courseProgress(cid);
         if (p.done === p.total) flag(`course_${cid}`);
       } else {
-        res.innerHTML = `${right}/${lesson.quiz.length} тўғри. Дарсни яна бир бор ўқиб, қайта уриниб кўринг. <button class="linklike" id="retry">Қайта топшириш</button>`;
+        res.innerHTML = `${right}/${lesson.quiz.length} тўғри. Дарсни яна бир бор ўқиб, қайта уриниб кўринг. <button type="button" class="linklike" id="retry">Қайта топшириш</button>`;
         $("#retry", modalBody).addEventListener("click", () => openLesson(cid, li));
       }
     }
@@ -169,8 +192,7 @@
       else { modal.close(); toast(`Сертификат учун барча дарс тестларидан ўтинг (${p.done}/${p.total})`); }
     });
 
-    if (!modal.open) modal.showModal();
-    modal.scrollTop = 0;
+    openModal();
   }
 
   /* ---------- Сертификат ---------- */
@@ -191,7 +213,7 @@
       state.name = name; save();
       downloadCertificate(name, course);
     });
-    if (!modal.open) modal.showModal();
+    openModal();
   }
 
   function downloadCertificate(name, course) {
@@ -238,12 +260,12 @@
   let newsCat = "all";
   let newsQ = "";
   $("#newsFilters").innerHTML = Object.entries(NEWS_CATS).map(([k, v]) =>
-    `<button class="chip ${k === "all" ? "active" : ""}" data-n="${k}">${v}</button>`).join("");
+    `<button type="button" class="chip ${k === "all" ? "active" : ""}" aria-pressed="${k === "all"}" data-n="${k}">${v}</button>`).join("");
   $("#newsFilters").addEventListener("click", (e) => {
     const b = e.target.closest("[data-n]");
     if (!b) return;
     newsCat = b.dataset.n;
-    $$("#newsFilters .chip").forEach((x) => x.classList.toggle("active", x === b));
+    $$("#newsFilters .chip").forEach((x) => { x.classList.toggle("active", x === b); x.setAttribute("aria-pressed", x === b); });
     renderNews();
   });
   $("#newsSearch").addEventListener("input", (e) => { newsQ = e.target.value.trim(); renderNews(); });
@@ -274,6 +296,7 @@
 
   async function loadGov() {
     $("#govList").innerHTML = `<p class="muted">Юкланмоқда…</p>`;
+    if (location.protocol === "file:" && window.MINISTRY_SNAPSHOT) { gov = window.MINISTRY_SNAPSHOT; return renderGov(); }
     try {
       const r = await fetch("data/ministry.json", { cache: "no-store" });
       if (!r.ok) throw new Error(r.status);
@@ -344,25 +367,26 @@
     $("#libFeature").innerHTML = `
       <div class="big">${a.icon}</div>
       <div><div class="kicker">🐾 Кун ҳайвони</div><h3>${esc(a.name)}</h3><p><b>Биласизми?</b> ${esc(fact)}</p></div>
-      <button class="btn btn-primary" data-lib="animals" data-i="${i}">Батафсил</button>`;
+      <button type="button" class="btn btn-primary" data-lib="animals" data-i="${i}">Батафсил<span class="sr-only">: ${esc(a.name)}</span></button>`;
   }
 
   function renderLibrary() {
-    $$("#libTabs .lib-tab").forEach((b) => { const on = b.dataset.t === libTab; b.classList.toggle("active", on); b.setAttribute("aria-selected", on); });
+    $$("#libTabs .lib-tab").forEach((b) => { const on = b.dataset.t === libTab; b.classList.toggle("active", on); b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
+    $("#libPanel").setAttribute("aria-labelledby", "tab-" + libTab);
     $("#libFilters").innerHTML = Object.entries(LIB_FILTERS[libTab]).map(([k, v]) =>
-      `<button class="chip ${k === libFilter ? "active" : ""}" data-lf="${esc(k)}">${esc(v)}</button>`).join("");
+      `<button type="button" class="chip ${k === libFilter ? "active" : ""}" aria-pressed="${k === libFilter}" data-lf="${esc(k)}">${esc(v)}</button>`).join("");
     const items = LIBRARY[libTab].map((x, i) => ({ x, i }))
       .filter(({ x }) => libFilter === "all" || libGroup(libTab, x) === libFilter)
       .filter(({ x }) => !libQ || EkoLang.matches(libText(libTab, x), libQ));
     $("#libGrid").innerHTML = items.length ? items.map(({ x, i }) => {
       const read = state.read[readKey(libTab, i)] ? `<span class="read">✓ Ўқилди</span>` : "";
-      if (libTab === "animals") return `<button class="lib-card" data-lib="animals" data-i="${i}">${read}
+      if (libTab === "animals") return `<button type="button" class="lib-card" data-lib="animals" data-i="${i}">${read}
         <div class="em">${x.icon}</div>${statusBadge(x.status)}${x.success ? '<span class="ok-tag">🌱 Муваффақият тарихи</span>' : ""}
         <h3>${esc(x.name)}</h3><div class="latin">${esc(x.latin)}</div><p>${esc(x.facts[0])}</p></button>`;
-      if (libTab === "books") return `<button class="lib-card" data-lib="books" data-i="${i}">${read}
+      if (libTab === "books") return `<button type="button" class="lib-card" data-lib="books" data-i="${i}">${read}
         <div class="cover">${x.icon}</div><span class="ok-tag">${esc(x.tag)}</span>
         <h3>${esc(x.title)}</h3><div class="meta">${esc(x.author)} · ${x.year}</div><p>${esc(x.short)}</p></button>`;
-      return `<button class="lib-card" data-lib="laws" data-i="${i}">${read}
+      return `<button type="button" class="lib-card" data-lib="laws" data-i="${i}">${read}
         <div class="em">${x.icon}</div><span class="ok-tag">${esc(x.kind)} · ${x.year}</span>
         <h3>${esc(x.title)}</h3><p>${esc(x.short)}</p></button>`;
     }).join("") : `<p class="muted">Ҳеч нарса топилмади.</p>`;
@@ -380,9 +404,9 @@
         <span class="pill">🐾 Ноёб ҳайвонлар</span>
         <h2>${x.icon} ${esc(x.name)}</h2>
         <div class="latin muted"><i>${esc(x.latin)}</i></div>
-        ${x.status === "RB" ? `<p>${statusBadge("RB")}</p>` : `<div class="iucn" aria-label="IUCN мақоми">${scale.map((k) =>
-          `<span class="${k === x.status ? "on" : ""}" style="${k === x.status ? `background:${IUCN[k].color}` : ""}" title="${esc(IUCN[k].label)}">${k}</span>`).join("")}</div>
-          <p class="small muted">IUCN Қизил рўйхати мақоми: <b style="color:${IUCN[x.status].color}">${esc(IUCN[x.status].label)}</b></p>`}
+        ${x.status === "RB" ? `<p>${statusBadge("RB")}</p>` : `<ol class="iucn" aria-label="IUCN Қизил рўйхати шкаласи">${scale.map((k) =>
+          `<li class="${k === x.status ? "on" : ""}" ${k === x.status ? `style="background:${IUCN[k].color}" aria-current="true"` : ""}><abbr title="${esc(IUCN[k].label)}">${k}</abbr></li>`).join("")}</ol>
+          <p class="small muted">IUCN Қизил рўйхати мақоми: ${statusBadge(x.status)}</p>`}
         ${x.success ? '<p><span class="ok-tag">🌱 Муваффақият тарихи — муҳофаза натижа берди</span></p>' : ""}
         <dl class="kv"><dt>📍 Қаерда яшайди</dt><dd>${esc(x.where)}</dd><dt>📊 Сони</dt><dd>${esc(x.pop)}</dd></dl>
         <h3>Биласизми?</h3>
@@ -407,18 +431,28 @@
     const n = LIBRARY[t].length;
     modalBody.innerHTML = html + `
       <div class="modal-actions">
-        <button class="btn btn-ghost" data-lib="${t}" data-i="${(i - 1 + n) % n}">← Олдинги</button>
-        <button class="btn btn-primary" data-lib="${t}" data-i="${(i + 1) % n}">Кейинги →</button>
+        <button type="button" class="btn btn-ghost" data-lib="${t}" data-i="${(i - 1 + n) % n}">← Олдинги</button>
+        <button type="button" class="btn btn-primary" data-lib="${t}" data-i="${(i + 1) % n}">Кейинги →</button>
       </div>`;
     const k = readKey(t, i);
     if (!state.read[k]) {
       state.read[k] = true;
       addXp(5, "янги билим");
     }
-    if (!modal.open) modal.showModal();
-    modal.scrollTop = 0;
+    openModal();
   }
 
+  $("#libTabs").addEventListener("keydown", (e) => {
+    const tabs = $$("#libTabs .lib-tab");
+    const i = tabs.findIndex((t) => t.dataset.t === libTab);
+    const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    const t = tabs[(to + tabs.length) % tabs.length];
+    libTab = t.dataset.t; libFilter = "all";
+    renderLibrary();
+    t.focus();
+  });
   $("#libTabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-t]");
     if (!b) return;
@@ -445,12 +479,12 @@
     ["Урганч", 41.55, 60.63], ["Навоий", 40.1, 65.38], ["Жиззах", 40.12, 67.84], ["Гулистон", 40.49, 68.78]
   ];
   function aqiInfo(v) {
-    if (v == null) return ["#999", "Маълумот йўқ"];
-    if (v <= 50) return ["#22c55e", "Яхши"];
-    if (v <= 100) return ["#eab308", "Ўртача"];
-    if (v <= 150) return ["#f97316", "Сезгирлар учун зарарли"];
-    if (v <= 200) return ["#ef4444", "Зарарли"];
-    return ["#a855f7", "Жуда зарарли"];
+    if (v == null) return ["#6b7280", "Маълумот йўқ"];
+    if (v <= 50) return ["#15803d", "Яхши"];
+    if (v <= 100) return ["#a16207", "Ўртача"];
+    if (v <= 150) return ["#c2410c", "Сезгирлар учун зарарли"];
+    if (v <= 200) return ["#dc2626", "Зарарли"];
+    return ["#7e22ce", "Жуда зарарли"];
   }
   async function loadAir() {
     const grid = $("#aqGrid");
@@ -472,8 +506,8 @@
         const [col, lbl] = aqiInfo(cur.us_aqi);
         const f = (v) => (v == null ? "—" : Math.round(v));
         return `<div class="aq" style="--aq:${col}">
-          <h4>${esc(name)}</h4>
-          <div class="aqi">${f(cur.us_aqi)}</div><div class="lbl" style="color:${col}">${lbl}</div>
+          <h3>${esc(name)}</h3>
+          <div class="aqi"><span class="sr-only">AQI: </span>${f(cur.us_aqi)}</div><div class="lbl" style="background:${col}">${lbl}</div>
           <dl><dt>PM2.5</dt><dd>${f(cur.pm2_5)} мкг/м³</dd><dt>PM10</dt><dd>${f(cur.pm10)} мкг/м³</dd><dt>NO₂</dt><dd>${f(cur.nitrogen_dioxide)} мкг/м³</dd></dl>
         </div>`;
       }).join("");
@@ -489,8 +523,8 @@
   /* ---------- Углерод калькулятори ---------- */
   const form = $("#calcForm");
   function calc() {
-    const v = Object.fromEntries(new FormData(form));
-    $$("input[type=range]", form).forEach((r) => { r.nextElementSibling.value = r.value; });
+    const v = Object.fromEntries($$("[name]", form).map((el) => [el.name, el.type === "checkbox" ? el.checked : el.value]));
+    $$("input[type=range]", form).forEach((r) => { $(`output[for="${r.id}"]`, form).value = r.value; });
     const parts = {
       "⚡ Электр": (+v.elec) * 12 * 0.45,
       "🔥 Газ": (+v.gas) * 12 * 1.9,
@@ -506,11 +540,11 @@
     const len = path.getTotalLength();
     path.style.strokeDasharray = len;
     path.style.strokeDashoffset = len * (1 - Math.min(total / max, 1));
-    path.style.stroke = total <= 2.5 ? "#22c55e" : total <= 5 ? "#eab308" : total <= 8 ? "#f97316" : "#ef4444";
+    path.style.stroke = total <= 2.5 ? "#15803d" : total <= 5 ? "#a16207" : total <= 8 ? "#c2410c" : "#dc2626";
 
     const biggest = Math.max(...Object.values(parts));
     $("#calcBars").innerHTML = Object.entries(parts).map(([k, val]) => `
-      <div class="bar-row"><span>${k}</span><div class="progress"><div style="width:${(val / biggest) * 100}%"></div></div><span>${(val / 1000).toFixed(2)} т</span></div>`).join("");
+      <div class="bar-row"><span>${k}</span><div class="progress" aria-hidden="true"><div style="width:${(val / biggest) * 100}%"></div></div><span>${(val / 1000).toFixed(2)} т</span></div>`).join("");
 
     const recs = [];
     const sorted = Object.entries(parts).sort((a, b) => b[1] - a[1]);
@@ -539,7 +573,7 @@
   function renderChallenges() {
     const today = state.challenges[dayKey()] || [];
     $("#chGrid").innerHTML = CHALLENGES.map((c) => `
-      <button class="ch ${today.includes(c.id) ? "on" : ""}" data-ch="${c.id}" aria-pressed="${today.includes(c.id)}">
+      <button type="button" class="ch ${today.includes(c.id) ? "on" : ""}" data-ch="${c.id}" aria-pressed="${today.includes(c.id)}">
         <span class="ic">${c.icon}</span><span>${esc(c.text)}</span><span class="xp">${today.includes(c.id) ? "✓" : "+" + c.xp}</span>
       </button>`).join("");
     $("#streakVal").textContent = streak();
@@ -582,11 +616,11 @@
     $("#xpVal").textContent = state.xp;
     $("#levelIcon").textContent = lv.icon;
     $("#levelName").textContent = `${lv.icon} ${lv.name} · ${state.xp} XP`;
-    $("#levelBar").style.width = next ? `${((state.xp - lv.min) / (next.min - lv.min)) * 100}%` : "100%";
+    $("#levelBar").value = next ? Math.round(((state.xp - lv.min) / (next.min - lv.min)) * 100) : 100;
     $("#levelNext").textContent = next ? `Кейинги даража «${next.name}» учун яна ${next.min - state.xp} XP керак.` : "Сиз энг юқори даражага етдингиз! 🌍";
     $("#badges").innerHTML = BADGES.map((b) => {
       const ok = b.test();
-      return `<div class="badge ${ok ? "" : "locked"}" title="${ok ? "Олинган" : "Ҳали олинмаган"}"><span class="bi">${b.icon}</span>${esc(b.name)}</div>`;
+      return `<li class="badge ${ok ? "" : "locked"}"><span class="bi" aria-hidden="true">${ok ? b.icon : "🔒"}</span>${esc(b.name)}<span class="sr-only">${ok ? " — олинган" : " — ҳали олинмаган"}</span></li>`;
     }).join("");
   }
 
@@ -640,6 +674,54 @@
     const t = cur === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = t;
     try { localStorage.setItem("ekotalim:theme", t); } catch (e) { /* ignore */ }
+  });
+
+  function downloadMyData() {
+    const blob = new Blob([JSON.stringify({ app: "EkoTalim", exported: new Date().toISOString(), data: state }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "EkoTalim-malumotlarim.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  $("#privacyBtn").addEventListener("click", () => {
+    modalBody.innerHTML = `
+      <span class="pill">🔒 Махфийлик</span>
+      <h2>Махфийлик ва маълумотлар</h2>
+      <div class="lesson-body">
+        <p><b>Рўйхатдан ўтиш, cookie ва кузатув йўқ.</b> Платформа аналитика, реклама ёки бошқа кузатув хизматларидан фойдаланмайди.</p>
+        <p><b>Натижаларингиз фақат сизнинг браузерингизда сақланади</b> (localStorage): XP, ўтилган дарслар, челленжлар, ўқилган материаллар, сертификат учун киритилган исм ва танланган алифбо/мавзу. Бу маълумотлар бизнинг ёки бошқа серверга юборилмайди.</p>
+        <p><b>Ташқи сўровлар:</b> «Ҳаво сифати» бўлими маълумотни Open-Meteo хизматидан олади — бунда сизнинг IP манзилингиз уларнинг серверига маълум бўлади. Шрифтлар ва бошқа файллар платформанинг ўзидан юкланади. Ташқи ҳаволалар (eco.gov.uz, lex.uz ва бошқалар) янги ойнада очилади ва уларнинг ўз қоидалари амал қилади.</p>
+        <p><b>Ҳуқуқларингиз:</b> ўз маълумотларингизни истаган вақтда юклаб олишингиз ёки бутунлай ўчиришингиз мумкин.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="exportData">⬇ Маълумотларимни юклаб олиш (JSON)</button>
+        <button type="button" class="btn btn-ghost" id="wipeData">🗑 Барчасини ўчириш</button>
+      </div>`;
+    $("#exportData").addEventListener("click", downloadMyData);
+    $("#wipeData").addEventListener("click", () => { modal.close(); $("#resetBtn").click(); });
+    openModal();
+  });
+
+  $("#a11yBtn").addEventListener("click", () => {
+    modalBody.innerHTML = `
+      <span class="pill">♿ Қулайлик</span>
+      <h2>Қулайлик баёноти</h2>
+      <div class="lesson-body">
+        <p>Платформа <b>WCAG 2.2 AA</b> (Web Content Accessibility Guidelines) талабларига мувофиқ ишлаб чиқилган ва ҳар бир ўзгаришда axe-core воситаси билан автоматик текширилади.</p>
+        <ul>
+          <li>Барча функциялардан фақат клавиатура ёрдамида фойдаланиш мумкин; «Асосий мазмунга ўтиш» ҳаволаси бор.</li>
+          <li>Матн ва фон контрасти камида 4,5:1; ёруғ ва қоронғи мавзу.</li>
+          <li>Экран ўқувчи дастурлар (NVDA, JAWS, VoiceOver, TalkBack) учун белгилар ва жонли ҳудудлар.</li>
+          <li>Тест жавоблари фақат ранг билан эмас, белги ва матн билан ҳам кўрсатилади.</li>
+          <li>Ҳаракатни камайтириш созламаси ҳурмат қилинади; саҳифа 200% гача катталаштирилганда ҳам ишлайди.</li>
+          <li>Кирилл ва лотин алифболари.</li>
+        </ul>
+        <p><b>Маълум чекловлар:</b> сертификат расм (PNG) шаклида; ташқи манбалардан келадиган вазирлик хабарлари ва ҳаво сифати маълумотлари асл манбадаги тилда кўрсатилади.</p>
+        <p>Қулайлик бўйича муаммога дуч келсангиз, лойиҳанинг GitHub саҳифасида хабар қолдиринг.</p>
+      </div>`;
+    openModal();
   });
 
   $("#resetBtn").addEventListener("click", () => {

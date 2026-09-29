@@ -1,0 +1,15 @@
+{
+  "name": "ekotalim",
+  "private": true,
+  "description": "ЭкоТаълим — экологик таълим платформаси",
+  "scripts": {
+    "test": "python3 -m unittest discover -s tools && npm run lint:html && npm run test:a11y",
+    "lint:html": "html-validate index.html",
+    "test:a11y": "node tests/a11y.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0",
+    "html-validate": "^11.16.1",
+    "playwright": "^1.56.1"
+  }
+}
