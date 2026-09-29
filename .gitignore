@@ -23,3 +23,7 @@ rad.json
 TestResults.xml
 # Битта HTML йиғмаси
 dist/
+
+# Python
+__pycache__/
+*.pyc
