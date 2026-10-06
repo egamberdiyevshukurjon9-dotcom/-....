@@ -60,6 +60,7 @@
         <div class="course-top"><div class="course-icon">${c.icon}</div><span class="pill">${esc(c.audienceLabel)}</span></div>
         <h3>${esc(c.title)}</h3>
         <p>${esc(c.desc)}</p>
+        ${c.source ? `<p class="source-note">📚 ${esc(c.source)}</p>` : ""}
         <div class="progress" title="${pct}%"><div style="width:${pct}%"></div></div>
         <span class="small muted">${p.done} / ${p.total} дарс тугатилди</span>
         <ul class="lesson-list">${c.lessons.map((l, i) => `
@@ -109,6 +110,7 @@
       <h2>${esc(lesson.title)}</h2>
       <div class="lesson-body">${lesson.body.map((p) => `<p>${esc(p)}</p>`).join("")}</div>
       <div class="lesson-tip">💡 <b>Амалий маслаҳат:</b> ${esc(lesson.tip)}</div>
+      ${course.source ? `<p class="source-note">📚 Манба: ${esc(course.source)}</p>` : ""}
       <div class="quiz">
         <h3>📝 Билимингизни синанг</h3>
         ${lesson.quiz.map((q, qi) => `

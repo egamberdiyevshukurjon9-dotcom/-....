@@ -1,5 +1,5 @@
 /* ЭкоТаълим — офлайн иш учун service worker */
-const CACHE = "ekotalim-v1";
+const CACHE = "ekotalim-v2";
 const ASSETS = ["./", "index.html", "css/style.css", "js/data.js", "js/app.js", "manifest.json", "icon.svg"];
 
 self.addEventListener("install", (e) => {
