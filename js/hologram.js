@@ -11,7 +11,7 @@
   /* ---------- Созламалар (URL > браузер хотираси > стандарт) ---------- */
   const PREF = "ekotalim:holo";
   // Кўзгу: пирамида аксида керак, оддий экран/вентиляторда эса керак эмас
-  const prefs = { mode: "pyramid", mirror: true, mirrorSingle: false, gap: 0.16, auto: true };
+  const prefs = { mode: "pyramid", mirror: true, mirrorSingle: false, gap: 0.16, auto: true, fx: true };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREF)) || {}); } catch (e) { /* хотира йўқ */ }
   const savePrefs = () => { try { localStorage.setItem(PREF, JSON.stringify(prefs)); } catch (e) { /* ignore */ } };
   const qs = new URLSearchParams(location.search);
@@ -550,8 +550,114 @@
     };
   }
 
-  const builders = [sceneEarth, sceneWater, sceneTree, sceneAral, sceneClimate, sceneRecycle, sceneEnergy];
-  const SHORT = ["🌍 Ер", "💧 Сув", "🌳 Дарахт", "🏜 Орол", "🌡 Иқлим", "♻️ Қайта ишлаш", "☀️ Энергия"];
+  function sceneAir() {
+    const g = new THREE.Group();
+    const ground = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.45, 0.08, 48), std(0x4b5563, { emissive: 0x111827, emissiveIntensity: 0.6 }));
+    ground.position.y = -1.08;
+    // Бинолар: деразалари ёниб турган шаҳар
+    const wc = document.createElement("canvas");
+    wc.width = 64; wc.height = 128;
+    const wx = wc.getContext("2d");
+    wx.fillStyle = "#1f2937"; wx.fillRect(0, 0, 64, 128);
+    for (let y = 6; y < 128; y += 14) for (let x = 6; x < 64; x += 14) { wx.fillStyle = Math.random() > 0.35 ? "#fde68a" : "#374151"; wx.fillRect(x, y, 8, 8); }
+    const winTex = new THREE.CanvasTexture(wc);
+    const city = new THREE.Group();
+    [[-0.7, 0.2, 0.9], [-0.35, -0.4, 1.3], [0.05, 0.45, 0.7], [-0.9, -0.45, 0.6], [0.3, -0.6, 1.0]].forEach(([x, z, h]) => {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(0.28, h, 0.28), std(0xffffff, { map: winTex, emissive: 0xffffff, emissiveMap: winTex, emissiveIntensity: 0.5 }));
+      b.position.set(x, -1.04 + h / 2, z);
+      city.add(b);
+    });
+    // Завод ва мўрилар
+    const factory = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.45), std(0x9ca3af, { emissive: 0x1f2937, emissiveIntensity: 0.5 }));
+    factory.position.set(0.75, -0.86, 0.15);
+    const stacks = [[0.62, 0.05], [0.9, 0.25]].map(([x, z]) => {
+      const c = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.9, 12), std(0xe5e7eb, { emissive: 0x7f1d1d, emissiveIntensity: 0.3 }));
+      c.position.set(x, -0.6, z);
+      return c;
+    });
+    const smoke = particles(180, 0x9ca3af, 0.2, 0.55);
+    const haze = particles(240, 0xd6d3d1, 0.12, 0.3);
+    const trees = new THREE.Group();
+    [[0.5, 0.8], [0.9, -0.6], [-0.2, 1.05], [1.1, 0.75]].forEach(([x, z]) => {
+      const t = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.35, 8), std(0x16a34a, { emissive: 0x14532d, emissiveIntensity: 0.7 }));
+      t.position.set(x, -0.86, z);
+      trees.add(t);
+    });
+    // AQI ҳалқаси: узунлиги ва ранги ҳаво сифатига боғлиқ
+    const gaugeBg = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.025, 8, 96), glowMat(0x334155, 0.6));
+    gaugeBg.rotation.x = Math.PI / 2;
+    gaugeBg.position.y = 0.6;
+    let gauge = null;
+    g.add(ground, city, factory, ...stacks, smoke, haze, trees, gaugeBg);
+    const scene = {
+      title: "Ҳаво сифати — Тошкент",
+      subtitle: "Жонли маълумот юкланмоқда…",
+      aqi: null,
+      facts: [
+        "PM2.5 — диаметри 2,5 микрондан кичик чанг заррачалари; улар ўпкага ва қонга ўтиши мумкин.",
+        "ЖССТ тавсияси: PM2.5 нинг йиллик ўртача миқдори 5 мкг/м³ дан ошмаслиги керак.",
+        "Ҳавони асранг: жамоат транспорти, велосипед, дарахт экиш ва барг-чиқиндини ёқмаслик.",
+      ],
+      group: g,
+      setAqi(aqi) {
+        scene.aqi = aqi;
+        if (gauge) { gaugeBg.remove(gauge); gauge.geometry.dispose(); }
+        const v = aqi == null ? 0 : clamp(aqi / 300, 0.02, 1);
+        const col = aqi == null ? 0x64748b : aqi <= 50 ? 0x22c55e : aqi <= 100 ? 0xeab308 : aqi <= 150 ? 0xf97316 : aqi <= 200 ? 0xef4444 : 0xa855f7;
+        gauge = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.06, 10, 96, v * TAU), glowMat(col, 0.95));
+        gaugeBg.add(gauge);
+        const k = aqi == null ? 0.4 : clamp(aqi / 200, 0.1, 1);
+        haze.material.opacity = 0.08 + k * 0.45;
+        smoke.material.opacity = 0.3 + k * 0.4;
+      },
+      update(t) {
+        smoke.userData.set((v, s) => {
+          const p = (s[0] + t * 0.18) % 1, st = stacks[s[1] < 0.5 ? 0 : 1].position;
+          v.set(st.x - p * 0.9 + Math.sin(p * 7 + s[2] * 6) * 0.08 * (1 + p * 2), st.y + 0.45 + p * 1.3, st.z + (s[3] - 0.5) * p * 0.6);
+        });
+        haze.userData.set((v, s) => {
+          const a = s[0] * TAU + t * 0.05, r = 0.3 + s[1] * 1.1;
+          v.set(Math.cos(a) * r, -0.9 + s[2] * 1.4 + Math.sin(t + s[3] * 6) * 0.03, Math.sin(a) * r);
+        });
+        gaugeBg.rotation.z = t * 0.2;
+      },
+    };
+    scene.setAqi(null);
+    // Open-Meteo / Copernicus CAMS — калит талаб қилинмайди, ҳар 30 дақиқада янгиланади
+    const AQI_LABELS = [[50, "яхши"], [100, "ўртача"], [150, "сезгирлар учун зарарли"], [200, "зарарли"], [Infinity, "жуда зарарли"]];
+    async function loadAir() {
+      try {
+        const r = await fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=41.2995&longitude=69.2401&current=us_aqi,pm2_5&timezone=Asia%2FTashkent");
+        if (!r.ok) throw new Error(r.status);
+        const cur = (await r.json()).current || {};
+        if (typeof cur.us_aqi !== "number") throw new Error("маълумот йўқ");
+        scene.setAqi(cur.us_aqi);
+        const lbl = AQI_LABELS.find(([max]) => cur.us_aqi <= max)[1];
+        scene.subtitle = `Ҳозир: AQI ${Math.round(cur.us_aqi)} (${lbl})` + (typeof cur.pm2_5 === "number" ? ` · PM2.5 ${cur.pm2_5.toFixed(1).replace(".", ",")} мкг/м³` : "");
+      } catch (e) {
+        scene.setAqi(null);
+        scene.subtitle = "Жонли маълумот олинмади — интернетни текширинг";
+      }
+      captionDirty = true;
+    }
+    loadAir();
+    setInterval(loadAir, 30 * 60 * 1000);
+    return scene;
+  }
+
+  const builders = [sceneEarth, sceneWater, sceneTree, sceneAir, sceneAral, sceneClimate, sceneRecycle, sceneEnergy];
+  const SHORT = ["🌍 Ер", "💧 Сув", "🌳 Дарахт", "🌫 Ҳаво", "🏜 Орол", "🌡 Иқлим", "♻️ Қайта ишлаш", "☀️ Энергия"];
+  // Ҳар бир саҳна учун тест: тўғри жавоб биринчи ўринда (кўрсатишда аралаштирилади)
+  const QUIZ = [
+    { q: "Ер юзасининг тахминан қанча қисми сув билан қопланган?", a: ["71%", "50%", "90%"], why: "Ер юзасининг ~71% и океан, денгиз ва кўллар." },
+    { q: "Ердаги сувнинг қанча қисми чучук сув?", a: ["~3%", "~30%", "~50%"], why: "~97% и шўр сув, чучук сув атиги ~3%." },
+    { q: "Дарахт фотосинтезда қайси газни ютади?", a: ["Карбонат ангидрид (CO₂)", "Кислород (O₂)", "Азот (N₂)"], why: "Дарахт CO₂ ни ютиб, кислород чиқаради." },
+    { q: "ЖССТ тавсиясига кўра PM2.5 нинг йиллик ўртача миқдори қанчадан ошмаслиги керак?", a: ["5 мкг/м³", "50 мкг/м³", "150 мкг/м³"], why: "ЖССТ (2021) тавсияси — йиллик ўртача 5 мкг/м³." },
+    { q: "Орол денгизи қуришининг асосий сабаби нима?", a: ["Дарёлар сувининг суғоришга кўп олиниши", "Зилзила", "Музликлар эриши"], why: "Амударё ва Сирдарё сувлари асосан суғоришга олинган." },
+    { q: "Париж келишуви глобал исишни қандай даражада чеклашга интилади?", a: ["1,5 °C", "5 °C", "10 °C"], why: "Мақсад — исишни 1,5 °C билан чеклашга интилиш." },
+    { q: "Алюминий банкани қайта ишлаш қанча энергияни тежайди?", a: ["~95%", "~10%", "~40%"], why: "Хом ашёдан ишлаб чиқаришга нисбатан ~95% энергия тежалади." },
+    { q: "LED лампа чўғланма лампага нисбатан қанча кам электр сарфлайди?", a: ["~80%", "~5%", "Фарқи йўқ"], why: "LED лампа ~80% кам электр сарфлайди." },
+  ];
   const scenes = builders.map((b) => {
     const s = b();
     s.group.visible = false;
@@ -571,6 +677,7 @@
     prev = current;
     current = i;
     sceneTime = 0; factIdx = 0; factTime = 0; fade = 0;
+    if (quizOpen) closeQuiz();
     scenes.forEach((s, k) => { if (k !== i && k !== prev) s.group.visible = false; });
     scenes[i].group.visible = true;
     captionDirty = true;
@@ -698,7 +805,7 @@
     const dt = Math.min(clock.getDelta(), 0.1);
     if (!paused) {
       elapsed += dt; sceneTime += dt; factTime += dt;
-      if (prefs.auto && sceneTime > SCENE_SECONDS) show(current + 1);
+      if (prefs.auto && !quizOpen && sceneTime > SCENE_SECONDS) show(current + 1);
       else if (factTime > FACT_SECONDS) nextFact();
     }
     // Ўтиш: эскиси кичраяди, янгиси катталашади
@@ -715,7 +822,8 @@
     stage.rotation.y = userRotY;
     stage.rotation.x = userRotX;
     pedestal.userData.ticks.rotation.y = elapsed * 0.2;
-    if (captionDirty) drawCaption();
+    if (captionDirty) { drawCaption(); speakCaption(false); }
+    adaptQuality(dt);
 
     if (prefs.mode === "pyramid") {
       views.forEach((vw) => {
@@ -733,6 +841,118 @@
       placeCam(singleCam, 0, W / H, FRAMING.single);
       renderer.setRenderTarget(null);
       renderer.render(world, singleCam);
+    }
+  }
+
+  /* ---------- Тест (XP ЭкоТаълим ҳисобига қўшилади) ---------- */
+  const SITE_KEY = "ekotalim:v1";
+  const quizEl = $("#quiz");
+  let quizOpen = false, quizTimer = null;
+  function awardXp(sceneIdx) {
+    let st = {};
+    try { st = JSON.parse(localStorage.getItem(SITE_KEY)) || {}; } catch (e) { /* хотира йўқ */ }
+    st.xp = st.xp || 0;
+    st.flags = st.flags || {};
+    const key = `holo_q${sceneIdx}`;
+    if (st.flags[key]) return 0;
+    st.flags[key] = true;
+    st.xp += 10;
+    if (QUIZ.every((_, i) => st.flags[`holo_q${i}`])) st.flags.holo = true;
+    try { localStorage.setItem(SITE_KEY, JSON.stringify(st)); } catch (e) { return 0; }
+    return 10;
+  }
+  function closeQuiz() {
+    clearTimeout(quizTimer);
+    quizOpen = false;
+    quizEl.hidden = true;
+    sceneTime = Math.min(sceneTime, SCENE_SECONDS - 4); // жавобдан кейин саҳна бирдан алмашмайди
+  }
+  function openQuiz() {
+    const idx = current, item = QUIZ[idx];
+    const order = item.a.map((t, i) => ({ t, ok: i === 0 })).sort(() => Math.random() - 0.5);
+    quizEl.innerHTML = "";
+    const h = document.createElement("p"); h.className = "quiz-q"; h.textContent = `🧠 ${item.q}`;
+    const opts = document.createElement("div"); opts.className = "quiz-opts";
+    const res = document.createElement("p"); res.className = "quiz-res";
+    order.forEach((o) => {
+      const b = document.createElement("button");
+      b.className = "hud-btn";
+      b.textContent = o.t;
+      b.addEventListener("click", () => {
+        opts.querySelectorAll("button").forEach((x, i) => { x.disabled = true; if (order[i].ok) x.classList.add("ok"); });
+        if (o.ok) {
+          const xp = awardXp(idx);
+          res.textContent = `✅ Тўғри! ${item.why}` + (xp ? ` +${xp} XP` : "");
+        } else {
+          b.classList.add("bad");
+          res.textContent = `❌ Нотўғри. ${item.why}`;
+        }
+        clearTimeout(quizTimer);
+        quizTimer = setTimeout(closeQuiz, 4000);
+      });
+      opts.append(b);
+    });
+    const close = document.createElement("button");
+    close.className = "quiz-close"; close.textContent = "✕"; close.setAttribute("aria-label", "Ёпиш");
+    close.addEventListener("click", closeQuiz);
+    quizEl.append(close, h, opts, res);
+    quizEl.hidden = false;
+    quizOpen = true;
+    clearTimeout(quizTimer);
+    quizTimer = setTimeout(closeQuiz, 30000);
+    wakeUi();
+  }
+
+  /* ---------- Овозли изоҳ (браузерда ўзбек овози бўлса) ---------- */
+  const TR = { а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "j", з: "z", и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "x", ц: "ts", ч: "ch", ш: "sh", щ: "sh", ъ: "ʼ", ь: "", ы: "i", э: "e", ю: "yu", я: "ya", ў: "oʻ", қ: "q", ғ: "gʻ", ҳ: "h" };
+  function toLatin(text) {
+    text = text.replace(/км²/g, "kvadrat kilometr").replace(/мкг\/м³/g, "mikrogramm metr kubda").replace(/°C/g, " gradus").replace(/CO₂/g, "karbonat angidrid").replace(/O₂/g, "kislorod").replace(/~/g, "taxminan ").replace(/%/g, " foiz").replace(/[«»—→]/g, " ");
+    let out = "";
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i], lo = ch.toLowerCase();
+      let r = TR[lo];
+      if (r === undefined) { out += ch; continue; }
+      if (lo === "е" && (i === 0 || /[\s.,!?аеёиоуўэюяaeiou]/i.test(text[i - 1]))) r = "ye";
+      out += ch !== lo ? r.charAt(0).toUpperCase() + r.slice(1) : r;
+    }
+    return out;
+  }
+  let voiceOn = false, uzVoice = null, lastSpoken = "";
+  const findVoice = () => ("speechSynthesis" in window ? speechSynthesis.getVoices().find((v) => /^uz/i.test(v.lang)) : null) || null;
+  if ("speechSynthesis" in window) speechSynthesis.addEventListener("voiceschanged", () => { uzVoice = findVoice(); });
+  function speakCaption(force) {
+    if (!voiceOn || !uzVoice) return;
+    const s = scenes[current], key = `${current}:${factIdx}`;
+    if (key === lastSpoken && !force) return;
+    lastSpoken = key;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(toLatin((factIdx === 0 ? s.title + ". " : "") + s.facts[factIdx]));
+    u.voice = uzVoice; u.lang = uzVoice.lang; u.rate = 0.95;
+    speechSynthesis.speak(u);
+  }
+  function setVoice(on) {
+    if (on) {
+      uzVoice = findVoice();
+      if (!uzVoice) { toast("Бу браузерда ўзбек овози топилмади. Microsoft Edge'да (Windows, Android) «Madina» ёки «Sardor» овози бор."); on = false; }
+    } else if ("speechSynthesis" in window) speechSynthesis.cancel();
+    voiceOn = on;
+    $("#voiceBtn").classList.toggle("active", on);
+    if (on) speakCaption(true);
+  }
+
+  /* ---------- Сифатни автоматик мослаш (секин телефонлар учун) ---------- */
+  let fpsFrames = 0, fpsTime = 0, fpsWarm = 0, lowered = false;
+  function adaptQuality(dt) {
+    fpsWarm += dt;
+    if (fpsWarm < 3 || document.visibilityState !== "visible") return;
+    fpsFrames++; fpsTime += dt;
+    if (fpsTime < 2) return;
+    const fps = fpsFrames / fpsTime, pr = renderer.getPixelRatio();
+    fpsFrames = 0; fpsTime = 0;
+    if (fps < 30 && pr > 0.75) {
+      renderer.setPixelRatio(Math.max(0.75, pr - 0.5));
+      layout();
+      if (!lowered) { lowered = true; toast("Равон ишлаши учун тасвир сифати автоматик пасайтирилди"); }
     }
   }
 
@@ -771,6 +991,12 @@
     } catch (e) { toast("Тўлиқ экран бу браузерда ишламади — браузер менюсидан ёқинг"); }
   }
   $("#fsBtn").addEventListener("click", toggleFullscreen);
+  $("#quizBtn").addEventListener("click", () => (quizOpen ? closeQuiz() : openQuiz()));
+  $("#voiceBtn").addEventListener("click", () => setVoice(!voiceOn));
+  const fxBtn = $("#fxBtn");
+  const syncFx = () => { document.body.classList.toggle("fx", prefs.fx); fxBtn.classList.toggle("active", prefs.fx); };
+  fxBtn.addEventListener("click", () => { prefs.fx = !prefs.fx; savePrefs(); syncFx(); });
+  syncFx();
 
   // Экран ўчиб қолмаслиги учун
   let wakeLock = null;
@@ -886,7 +1112,9 @@
     else if (k === "p" || k === "п") setMode(prefs.mode === "pyramid" ? "single" : "pyramid");
     else if (k === "m" || k === "м") setMirror(!mirrored());
     else if (k === "h" || k === "?" || k === "ҳ") openPanel(panels.help);
-    else if (/^[1-7]$/.test(e.key)) show(parseInt(e.key, 10) - 1);
+    else if (/^[1-8]$/.test(e.key)) show(parseInt(e.key, 10) - 1);
+    else if (k === "t" || k === "т") openQuiz();
+    else if (k === "v" || k === "в") setVoice(!voiceOn);
     else return;
     wakeUi();
   });
@@ -896,7 +1124,7 @@
   function wakeUi() {
     document.body.classList.remove("idle");
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => { if (!anyPanelOpen()) document.body.classList.add("idle"); else wakeUi(); }, 3500);
+    idleTimer = setTimeout(() => { if (!anyPanelOpen() && !quizOpen) document.body.classList.add("idle"); else wakeUi(); }, 3500);
   }
   if (kiosk) document.body.classList.add("idle");
   else {

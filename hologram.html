@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ЭкоГолограмма — ЭкоТаълим</title>
-  <meta name="description" content="Экологик таълим учун 3D голограмма: пирамида (Pepper's ghost), голографик вентилятор ва проектор учун тайёр намойиш. Ер, сув айланиши, дарахт, Орол, иқлим, қайта ишлаш ва яшил энергия.">
+  <meta name="description" content="Экологик таълим учун 3D голограмма: пирамида (Pepper's ghost), голографик вентилятор ва проектор учун тайёр намойиш. Ер, сув айланиши, дарахт, жонли ҳаво сифати, Орол, иқлим, қайта ишлаш ва яшил энергия.">
   <meta name="theme-color" content="#000000">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -13,6 +13,8 @@
 <body>
   <canvas id="holo" aria-label="Экологик голограмма"></canvas>
   <div class="single-caption" id="singleCaption" aria-live="polite"></div>
+  <div class="scan" aria-hidden="true"></div>
+  <div class="quiz" id="quiz" role="dialog" aria-label="Тест" hidden></div>
 
   <!-- Бошқарув панели (3 сония ҳаракатсизликдан кейин яширинади) -->
   <header class="hud" id="hud">
@@ -23,6 +25,9 @@
       <button class="hud-btn" id="mirrorBtn" title="Кўзгу акси (M)">⇋ Кўзгу</button>
       <button class="hud-btn" id="autoBtn" title="Автоматик алмашиш (Space)">⏸ Тўхтатиш</button>
       <button class="hud-btn" id="fsBtn" title="Тўлиқ экран (F)">⛶ Тўлиқ экран</button>
+      <button class="hud-btn" id="quizBtn" title="Шу саҳна бўйича тест (T)">🧠 Тест</button>
+      <button class="hud-btn" id="voiceBtn" title="Овозли изоҳ (V)">🔊 Овоз</button>
+      <button class="hud-btn" id="fxBtn" title="Голографик эффект">✨ Эффект</button>
       <button class="hud-btn" id="recBtn" title="Вентилятор учун видео ёзиш">⏺ Видео</button>
       <button class="hud-btn" id="devBtn">🛠 Қурилмалар</button>
       <button class="hud-btn" id="sciBtn">📚 Илмий асос</button>
@@ -100,6 +105,8 @@
       <li><b>Реал вақт генерацияси.</b> Deep-learning CGH тадқиқотлари голограммани сониянинг улушларида ҳисоблашга интилади; бу ерда ҳам ҳар бир кадр браузерда (WebGL) 60 кадр/с гача ҳисобланади, тайёр видео шарт эмас.</li>
       <li><b>Таълимда фойдаланиш.</b> Таълим ва музейлардаги голографияга оид шарҳлар 3D визуаллаштириш қизиқиш ва эслаб қолишни оширишини, асосий тўсиқ эса нарх ва инфратузилма эканини кўрсатади — шунинг учун энг арзон вариант (телефон + пластик пирамида) ҳам қўлланади.</li>
       <li><b>Тегинишга жавоб берувчи голограмма.</b> Экранни бармоқ билан суриб объектни айлантириш, чимчилаб катталаштириш ва тегиниб кейинги фактга ўтиш мумкин.</li>
+      <li><b>Жонли маълумот.</b> «Ҳаво сифати» саҳнаси Тошкентнинг ҳозирги AQI ва PM2.5 кўрсаткичини (Open-Meteo / Copernicus CAMS) олади: тутун ва туман зичлиги ҳамда ҳалқа ранги шунга қараб ўзгаради.</li>
+      <li><b>Фаол ўрганиш.</b> Ҳар бир саҳна бўйича тест ва овозли изоҳ — шарҳларда кўрсатилганидек, голограмма интерактив машғулот билан бирга қўлланганда самарали.</li>
       <li><b>Кўзгу аксини тўғрилаш.</b> 45° сиртдаги акс тасвирни чапдан-ўнгга ағдаради; «⇋ Кўзгу» буни ҳисобга олади, матн тўғри ўқилади.</li>
     </ul>
     <h3>Фойдаланилган манбалар</h3>
@@ -114,7 +121,7 @@
       <li>Journal of Holography Applications in Physics (Scopus Q2). <a href="https://jhap.du.ac.ir/" target="_blank" rel="noopener">jhap.du.ac.ir</a> · Scientific Reports — Holographic Systems collection. <a href="https://www.nature.com/collections/djfdfijhgh" target="_blank" rel="noopener">nature.com</a></li>
     </ol>
     <h3>Экологик маълумотлар манбалари</h3>
-    <p class="small muted">WMO (2024 йил ҳарорати), NOAA (CO₂), NASA GISTEMP (ҳарорат аномалиялари, соддалаштирилган), USGS (сув захиралари), Natural Earth (қуруқлик чегаралари). Орол саҳнаси — схематик тасвир.</p>
+    <p class="small muted">WMO (2024 йил ҳарорати), ЖССТ (PM2.5 тавсияси, 2021), Open-Meteo / Copernicus CAMS (жонли ҳаво сифати), NOAA (CO₂), NASA GISTEMP (ҳарорат аномалиялари, соддалаштирилган), USGS (сув захиралари), Natural Earth (қуруқлик чегаралари). Орол саҳнаси — схематик тасвир.</p>
   </dialog>
 
   <!-- Ёрдам -->
@@ -129,12 +136,13 @@
     </ol>
     <h3>Тугмалар</h3>
     <ul>
-      <li><kbd>←</kbd> <kbd>→</kbd> — олдинги/кейинги саҳна · <kbd>1</kbd>–<kbd>7</kbd> — саҳна танлаш</li>
+      <li><kbd>←</kbd> <kbd>→</kbd> — олдинги/кейинги саҳна · <kbd>1</kbd>–<kbd>8</kbd> — саҳна танлаш</li>
+      <li><kbd>T</kbd> — шу саҳна бўйича тест (ҳар бир тўғри жавобга +10 XP) · <kbd>V</kbd> — овозли изоҳ</li>
       <li><kbd>Space</kbd> — автоматик алмашишни тўхтатиш/давом эттириш</li>
       <li><kbd>P</kbd> — пирамида/битта · <kbd>M</kbd> — кўзгу · <kbd>F</kbd> — тўлиқ экран · <kbd>H</kbd> — ёрдам</li>
       <li>Суриш — айлантириш · ғилдирак/чимчилаш — катталаштириш · тегиниш — кейинги факт</li>
     </ul>
-    <p class="small muted">Киоск режими учун ҳавола: <code>hologram.html?mode=single&amp;scene=3&amp;ui=0</code> (<code>mode</code>: pyramid | single, <code>scene</code>: 1–7, <code>ui=0</code> — панелсиз).</p>
+    <p class="small muted">Киоск режими учун ҳавола: <code>hologram.html?mode=single&amp;scene=3&amp;ui=0</code> (<code>mode</code>: pyramid | single, <code>scene</code>: 1–8, <code>ui=0</code> — панелсиз).</p>
   </dialog>
 
   <div class="toast" id="toast" role="status"></div>

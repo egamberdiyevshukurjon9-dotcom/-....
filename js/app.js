@@ -400,7 +400,8 @@
     { id: "s7", icon: "⚡", name: "7 кун серия", test: () => streak() >= 7 },
     { id: "calc", icon: "🧮", name: "Углерод ҳисобчиси", test: () => state.flags.calc },
     { id: "chat", icon: "💬", name: "Қизиқувчан", test: () => state.flags.chat },
-    { id: "air", icon: "🛰️", name: "Ҳаво кузатувчиси", test: () => state.flags.air }
+    { id: "air", icon: "🛰️", name: "Ҳаво кузатувчиси", test: () => state.flags.air },
+    { id: "holo", icon: "🔺", name: "Голограмма билимдони", test: () => state.flags.holo }
   ];
 
   function renderGamification() {
