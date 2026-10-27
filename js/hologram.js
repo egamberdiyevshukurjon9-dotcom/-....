@@ -15,10 +15,15 @@
   try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREF)) || {}); } catch (e) { /* хотира йўқ */ }
   const savePrefs = () => { try { localStorage.setItem(PREF, JSON.stringify(prefs)); } catch (e) { /* ignore */ } };
   const qs = new URLSearchParams(location.search);
-  if (qs.get("mode") === "single" || qs.get("mode") === "pyramid") prefs.mode = qs.get("mode");
-  if (qs.get("mirror") === "0" || qs.get("mirror") === "1") prefs[prefs.mode === "single" ? "mirrorSingle" : "mirror"] = qs.get("mirror") === "1";
+  const MODES = ["pyramid", "single", "fan"];
+  if (MODES.includes(qs.get("mode"))) prefs.mode = qs.get("mode");
+  if (!MODES.includes(prefs.mode)) prefs.mode = "pyramid";
+  if (qs.get("mirror") === "0" || qs.get("mirror") === "1") prefs[prefs.mode === "pyramid" ? "mirror" : "mirrorSingle"] = qs.get("mirror") === "1";
+  if (qs.get("auto") === "0" || qs.get("auto") === "1") prefs.auto = qs.get("auto") === "1";
   const kiosk = qs.get("ui") === "0";
-  const mirrored = () => (prefs.mode === "single" ? prefs.mirrorSingle : prefs.mirror);
+  // Вентилятор видеоси квадрат ва аниқ ўлчамда бўлиши керак (одатда 1024–2048 px)
+  const FAN_PX = clamp(parseInt(qs.get("px"), 10) || 1080, 256, 2048);
+  const mirrored = () => (prefs.mode === "pyramid" ? prefs.mirror : prefs.mode === "single" && prefs.mirrorSingle);
 
   const toastEl = $("#toast");
   let toastTimer;
@@ -595,6 +600,14 @@
   capScene.add(capMesh);
   const FONT = 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 
+  // Вентилятор: парраклар фақат ички доирани кўрсатади — ёзув доира ичига жойланади, ташқариси қора
+  const fanCanvas = document.createElement("canvas");
+  fanCanvas.width = fanCanvas.height = 1024;
+  const fanCtx = fanCanvas.getContext("2d");
+  const fanTex = new THREE.CanvasTexture(fanCanvas);
+  const fanScene = new THREE.Scene();
+  fanScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: fanTex, transparent: true, depthTest: false, depthWrite: false })));
+
   function wrap(ctx, text, maxW) {
     const words = text.split(" "), lines = [];
     let line = "";
@@ -629,6 +642,7 @@
     c.font = `500 40px ${FONT}`;
     wrap(c, fact, W - 60).slice(0, s.subtitle ? 3 : 4).forEach((ln, i) => c.fillText(ln, W / 2, y + i * 48));
     capTex.needsUpdate = true;
+    if (prefs.mode === "fan") drawFanCaption(s, fact);
 
     const sc = $("#singleCaption");
     sc.innerHTML = "";
@@ -639,9 +653,44 @@
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { captionDirty = true; });
 
+  // Доира ичида: юқорида сарлавҳа, пастда факт (ватар энига қараб шрифт кичраяди)
+  function drawFanCaption(s, fact) {
+    const c = fanCtx, N = fanCanvas.width, R = N / 2;
+    const chord = (y) => 2 * Math.sqrt(Math.max(0, R * R - (y - R) * (y - R))) * 0.86;
+    c.clearRect(0, 0, N, N);
+    c.shadowBlur = 0;
+    c.fillStyle = "#000";
+    c.beginPath(); c.rect(0, 0, N, N); c.arc(R, R, R, 0, TAU, true); c.fill();
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.shadowColor = "rgba(34,197,94,.9)";
+    c.shadowBlur = 16;
+    c.fillStyle = "#86efac";
+    c.font = `800 60px ${FONT}`;
+    c.fillText(s.title, R, 150, chord(120));
+    if (s.subtitle) {
+      c.shadowBlur = 8;
+      c.fillStyle = "#fde68a";
+      c.font = `600 34px ${FONT}`;
+      c.fillText(s.subtitle, R, 212, chord(195));
+    }
+    c.shadowBlur = 8;
+    c.fillStyle = "#ecfdf5";
+    let size = 38, lines;
+    for (; size >= 26; size -= 2) {
+      c.font = `500 ${size}px ${FONT}`;
+      lines = wrap(c, fact, chord(860));
+      if (lines.length <= 3) break;
+    }
+    lines = lines.slice(0, 3);
+    const lh = size * 1.22, y0 = 820 - ((lines.length - 1) * lh) / 2;
+    lines.forEach((ln, i) => c.fillText(ln, R, y0 + i * lh, chord(y0 + i * lh + size / 2)));
+    fanTex.needsUpdate = true;
+  }
+
   /* ---------- Камералар ва пирамида композицияси ---------- */
   // Пирамидада объект ташқи четга яқин ва ингичка бўлиши керак (марказ яқинида кўринишлар устма-уст тушади)
-  const FRAMING = { pyramid: { dist: 8.8, y: -0.05, lift: 1.6 }, single: { dist: 6.4, y: -0.65, lift: 1.0 } };
+  const FRAMING = { pyramid: { dist: 8.8, y: -0.05, lift: 1.6 }, single: { dist: 6.4, y: -0.65, lift: 1.0 }, fan: { dist: 8.8, y: -0.2, lift: 1.0 } };
   const TARGET = new THREE.Vector3();
   // Пастки томошабин — олд томон, ўнг — ўнг ён, юқори — орқа, чап — чап ён
   const viewDefs = [
@@ -665,8 +714,17 @@
   let W = 0, H = 0, zoom = 1, userRotY = 0, userRotX = 0;
   function layout() {
     W = window.innerWidth; H = window.innerHeight;
-    renderer.setSize(W, H, false);
-    canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    const fan = prefs.mode === "fan";
+    renderer.setPixelRatio(fan ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+    if (fan) {
+      // Ҳақиқий ўлчам — FAN_PX × FAN_PX; экранда эса доира сифатида кичрайтириб кўрсатилади
+      const S = Math.min(W, H);
+      renderer.setSize(FAN_PX, FAN_PX, false);
+      canvas.style.width = S + "px"; canvas.style.height = S + "px";
+    } else {
+      renderer.setSize(W, H, false);
+      canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    }
     compCam.left = -W / 2; compCam.right = W / 2; compCam.top = H / 2; compCam.bottom = -H / 2;
     compCam.updateProjectionMatrix();
     const S = Math.min(W, H), gap = prefs.gap * S, v = (S - gap) / 2;
@@ -680,6 +738,8 @@
     singleCam.aspect = W / H;
     singleCam.updateProjectionMatrix();
     document.body.classList.toggle("single", prefs.mode === "single");
+    document.body.classList.toggle("fan", fan);
+    captionDirty = true;
     document.body.classList.toggle("mirror-single", prefs.mode === "single" && prefs.mirrorSingle);
   }
 
@@ -729,6 +789,15 @@
       });
       renderer.setRenderTarget(null);
       renderer.render(compScene, compCam);
+    } else if (prefs.mode === "fan") {
+      singleCam.aspect = 1;
+      singleCam.updateProjectionMatrix();
+      placeCam(singleCam, 0, 1, FRAMING.fan);
+      renderer.setRenderTarget(null);
+      renderer.render(world, singleCam);
+      renderer.autoClear = false;
+      renderer.render(fanScene, capCam);
+      renderer.autoClear = true;
     } else {
       placeCam(singleCam, 0, W / H, FRAMING.single);
       renderer.setRenderTarget(null);
@@ -750,15 +819,24 @@
 
   const modeBtn = $("#modeBtn"), mirrorBtn = $("#mirrorBtn"), autoBtn = $("#autoBtn"), gapIn = $("#gap");
   function syncUi() {
-    modeBtn.textContent = prefs.mode === "pyramid" ? "🔺 Пирамида" : "⬛ Битта";
+    modeBtn.textContent = { pyramid: "🔺 Пирамида", single: "⬛ Битта", fan: "🌀 Вентилятор" }[prefs.mode];
     mirrorBtn.classList.toggle("active", mirrored());
     autoBtn.textContent = prefs.auto ? "⏸ Тўхтатиш" : "▶ Автоматик";
     gapIn.value = prefs.gap;
   }
-  function setMode(m) { prefs.mode = m; savePrefs(); syncUi(); layout(); toast(m === "pyramid" ? "🔺 Пирамида режими: экранни ётқизиб, марказга пирамида қўйинг" : "⬛ Битта кўриниш: вентилятор, проектор ёки экран учун"); }
-  function setMirror(v) { prefs[prefs.mode === "single" ? "mirrorSingle" : "mirror"] = v; savePrefs(); syncUi(); layout(); }
+  const MODE_TIPS = {
+    pyramid: "🔺 Пирамида режими: экранни ётқизиб, марказга пирамида қўйинг",
+    single: "⬛ Битта кўриниш: проектор ёки оддий экран учун",
+    fan: `🌀 Вентилятор: ${FAN_PX}×${FAN_PX} квадрат, қора фон — «⏺ Видео» билан ёзиб, вентиляторга юкланг`,
+  };
+  const nextMode = () => MODES[(MODES.indexOf(prefs.mode) + 1) % MODES.length];
+  function setMode(m) { prefs.mode = m; savePrefs(); syncUi(); layout(); toast(MODE_TIPS[m]); }
+  function setMirror(v) {
+    if (prefs.mode === "fan") { toast("Вентиляторда кўзгу акси керак эмас"); return; }
+    prefs[prefs.mode === "single" ? "mirrorSingle" : "mirror"] = v; savePrefs(); syncUi(); layout();
+  }
   function setAuto(v) { prefs.auto = v; sceneTime = 0; savePrefs(); syncUi(); }
-  modeBtn.addEventListener("click", () => setMode(prefs.mode === "pyramid" ? "single" : "pyramid"));
+  modeBtn.addEventListener("click", () => setMode(nextMode()));
   mirrorBtn.addEventListener("click", () => setMirror(!mirrored()));
   autoBtn.addEventListener("click", () => setAuto(!prefs.auto));
   gapIn.addEventListener("input", () => { prefs.gap = parseFloat(gapIn.value); layout(); });
@@ -829,7 +907,7 @@
       const blob = new Blob(chunks, { type: type.split(";")[0] });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `ekogologramma.${type.includes("mp4") ? "mp4" : "webm"}`;
+      a.download = `ekogologramma${prefs.mode === "fan" ? "-ventilyator-" + FAN_PX : ""}.${type.includes("mp4") ? "mp4" : "webm"}`;
       document.body.append(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 5000);
       recorder = null;
@@ -883,7 +961,7 @@
     else if (e.key === "ArrowLeft") show(current - 1);
     else if (e.key === " ") { e.preventDefault(); setAuto(!prefs.auto); }
     else if (k === "f" || k === "а") toggleFullscreen();
-    else if (k === "p" || k === "п") setMode(prefs.mode === "pyramid" ? "single" : "pyramid");
+    else if (k === "p" || k === "п") setMode(nextMode());
     else if (k === "m" || k === "м") setMirror(!mirrored());
     else if (k === "h" || k === "?" || k === "ҳ") openPanel(panels.help);
     else if (/^[1-7]$/.test(e.key)) show(parseInt(e.key, 10) - 1);
