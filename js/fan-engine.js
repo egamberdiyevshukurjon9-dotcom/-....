@@ -27,6 +27,7 @@
     gold:  { name: "✨ Олтин", a: "#ffd23f", b: "#ff8c1a", c: "#fff1b8", text: "#fffbe8" },
     ocean: { name: "🌊 Океан", a: "#3de0ff", b: "#4d7cff", c: "#b8f4ff", text: "#ffffff" },
     fire:  { name: "🔥 Олов",  a: "#ff4d3d", b: "#ffb020", c: "#fff0a0", text: "#fff6e8" },
+    suv:   { name: "💧 Сув",   a: "#2de2d0", b: "#ffb020", c: "#8bd3ff", text: "#ffffff" },
   };
 
   /* ---------- Иконкалар: -50…50 катакда, қалин контур ---------- */
@@ -365,7 +366,7 @@
       c.save(); c.translate(0, (1 - q) * 50);
       drawLines(c, f._lay, 0, f._y, th.text, q);
       c.restore();
-      arcText(c, P.name, 830, true, 104, th.b, 1, 1, 2.0, 0.04);
+      arcText(c, P.short || P.name, 830, true, 104, th.b, 1, 1, 2.0, 0.04);
       // ҳолат нуқталари
       for (let j = 0; j < n; j++) {
         const a = Math.PI / 2 + (j - (n - 1) / 2) * 0.095;
@@ -381,7 +382,7 @@
       c.save(); c.strokeStyle = th.a; c.lineWidth = 22; c.lineCap = "round"; glow(c, th.a, 22, k);
       c.beginPath(); c.arc(0, 0, 745, -Math.PI / 2, -Math.PI / 2 + TAU * prog); c.stroke(); c.restore();
       const val = Math.round(st.v * E.out(seg(u, 0.15, 1.5)));
-      const txt = String(val).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + (st.suffix || "");
+      const txt = (st.prefix || "") + String(val).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + (st.suffix || "");
       const q = E.back(seg(u, 0.05, 0.7));
       const big = layoutText(c, txt, 560, 1200, 1, 120);
       c.save(); c.scale(q, q);
@@ -390,7 +391,12 @@
       c.restore();
       const lab = layoutText(c, st.l, 150, 1250, 2, 70);
       drawLines(c, lab, 0, 300, th.text, E.out(seg(u, 0.5, 1.2)));
-      arcText(c, P.name, 830, true, 104, th.b, 1, 1, 2.0, 0.04);
+      arcText(c, P.short || P.name, 830, true, 104, th.b, 1, 1, 2.0, 0.04);
+    },
+    // 3D модель (симли «голограмма»): fan-models.js даги FanModels[id]
+    model(c, s, u, P, th, T, k) {
+      const m = global.FanModels && global.FanModels[s.data.id];
+      if (m) m.draw(c, s, u, P, th, k);
     },
     outro(c, s, u, P, th, T, k) {
       const cy = -170;
@@ -416,6 +422,7 @@
     const scenes = []; let t = 0;
     const add = (type, dur, data) => { dur = dur / sp; scenes.push({ type, start: t, dur, data }); t += dur; };
     add("intro", 4.6, {});
+    (project.models || []).forEach((id) => add("model", (global.FanModels && global.FanModels[id] && global.FanModels[id].dur) || 20, { id }));
     const feats = (project.features || []).slice(0, 8);
     feats.forEach((f, i) => add("feature", 3.3, { f, i, n: feats.length }));
     (project.stats || []).slice(0, 4).forEach((s, i) => add("stat", 3.0, { s, i }));
@@ -435,7 +442,13 @@
     // Ном: имкони борича бир сатрда; жуда кичрайиб кетса — икки сатр
     const nm = P.name || "Лойиҳа";
     let nl = null;
-    for (let sz = 250; sz >= 160; sz -= 10) {
+    if (nm.includes("\n")) { // қўлда сатрланган ном: «Тоза сув —\nҳар бир туманга»
+      const lines = nm.split("\n").map((x) => x.trim()).filter(Boolean);
+      let sz = 150;
+      for (; sz > 90; sz -= 6) { setFont(c, sz); if (Math.max(...lines.map((l) => c.measureText(l).width)) <= 1300) break; }
+      nl = { size: sz, lines, y: 310 };
+    }
+    for (let sz = 250; !nl && sz >= 160; sz -= 10) {
       setFont(c, sz);
       if (c.measureText(nm).width <= 1300) { nl = { size: sz, lines: [nm] }; break; }
     }
@@ -449,7 +462,8 @@
       return lay;
     };
     P._tag = fit(P.tagline);
-    let cta = P.url ? layoutText(c, P.url, 105, 1250, 1, 64) : null;
+    const ctaText = P.cta || P.url;
+    let cta = ctaText ? layoutText(c, ctaText, 105, 1250, 1, 64) : null;
     if (!cta || widest(cta) > 1250) cta = P._tag; // манзил жуда узун — шиор кўрсатилади
     P._cta = cta;
     P.features = (P.features || []).slice(0, 8).map((f, i) => {
@@ -506,5 +520,5 @@
     };
   }
 
-  global.FanEngine = { create, THEMES, ICONS, ICON_NAMES, pickIcon, drawIcon };
+  global.FanEngine = { create, THEMES, ICONS, ICON_NAMES, pickIcon, drawIcon, _h: { TAU, clamp, seg, smooth, E, setFont, layoutText, drawLines, arcText, glow } };
 })(typeof window !== "undefined" ? window : globalThis);

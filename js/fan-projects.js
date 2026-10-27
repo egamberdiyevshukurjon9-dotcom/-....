@@ -3,7 +3,9 @@
  * Маълумотлар лойиҳаларнинг ўз README ва кодидан олинган (рақамлар ҳақиқий):
  *  - Ekomun: 60 даража, 4 эко-ўйин, 8 кроссворд, 13 шаҳарнинг жонли ҳаво сифати;
  *  - Яшил белбоғ: маълумот ҳар 10 дақиқада янгиланади, 6 ҳудуд;
- *  - ЭкоГолограмма: 7 та 3D саҳна, 3 хил намойиш тури.
+ *  - ЭкоГолограмма: 7 та 3D саҳна, 3 хил намойиш тури;
+ *  - Тоза сув: сув тозалаш лойиҳаси (AGS_3D_model_lotin_2.html ва инвестор ҳужжати): 1 500 м³/сут, 150 кВт,
+ *    дори қолдиқлари ≥ 80 %, 6 туман, ~93 % сув қайта ишлатилади.
  * Янги лойиҳани саҳифанинг ўзида «➕ Янги лойиҳа» орқали қўшишингиз мумкин
  * (ёки шу рўйхатга янги объект қўшинг).
  *
@@ -12,7 +14,10 @@
  *   name      — катта ном          kicker — тепадаги ёй ёзуви
  *   tagline   — пастдаги шиор      url    — охирги саҳнада (ихтиёрий)
  *   icon      — иконка (FanEngine.ICON_NAMES)     theme — ранг мавзуси (eko|neon|gold|ocean|fire)
- *   features  — [{t: "Сарлавҳа", icon?: "book"}]  stats — [{v: 60, l: "даража", suffix?: "+"}]
+ *   features  — [{t: "Сарлавҳа", icon?: "book"}]  stats — [{v: 60, l: "даража", prefix?: "≥ ", suffix?: "%"}]
+ *   models    — 3D моделлар (fan-models.js): "ags" иншоот, "region" ҳудудий тизим
+ *   short     — тепадаги ёйда кўринадиган қисқа ном    cta — охирги саҳнадаги ёзув (url ўрнига)
+ *   lang      — "kiril" | "lotin" (3D модел матнлари учун)
  */
 (function (global) {
   "use strict";
@@ -80,6 +85,42 @@
       ],
     },
     {
+      id: "suv-tozalash",
+      name: "Тоза сув —\nҳар бир туманга",
+      short: "Тоза сув",
+      kicker: "Оқова сув тозалаш",
+      tagline: "Қуёш энергияли AGS",
+      icon: "drop",
+      theme: "suv",
+      lang: "kiril",
+      models: ["ags", "region"],
+      features: [],
+      stats: [
+        { v: 1500, l: "м³/сут оқова сув (10 000 аҳоли)" },
+        { v: 150, l: "кВт қуёш станцияси" },
+        { v: 80, prefix: "≥ ", suffix: "%", l: "дори қолдиқлари камаяди" },
+        { v: 93, suffix: "%", l: "сув қайта ишлатилади (6 туман)" },
+      ],
+    },
+    {
+      id: "suv-tozalash-lotin",
+      name: "Toza suv —\nhar bir tumanga",
+      short: "Toza suv",
+      kicker: "Oqova suv tozalaş",
+      tagline: "Quyoş energiyali AGS",
+      icon: "drop",
+      theme: "suv",
+      lang: "lotin",
+      models: ["ags", "region"],
+      features: [],
+      stats: [
+        { v: 1500, l: "m³/sut oqova suv (10 000 aholi)" },
+        { v: 150, l: "kVt quyoş stansiyasi" },
+        { v: 80, prefix: "≥ ", suffix: "%", l: "dori qoldiqlari kamayadi" },
+        { v: 93, suffix: "%", l: "suv qayta işlatiladi (6 tuman)" },
+      ],
+    },
+    {
       id: "loyihalarim",
       name: "Экологик лойиҳаларим",
       kicker: "Экология яхшилаш учун",
@@ -100,6 +141,8 @@
     { file: "tayyor-videolar/ekomun-eko-720.mp4", name: "Ekomun" },
     { file: "tayyor-videolar/yashil-belbog-eko-720.mp4", name: "Яшил белбоғ" },
     { file: "tayyor-videolar/ekogolo-ocean-720.mp4", name: "ЭкоГолограмма" },
+    { file: "tayyor-videolar/suv-tozalash-suv-720.mp4", name: "Тоза сув (3D)" },
+    { file: "tayyor-videolar/suv-tozalash-lotin-suv-720.mp4", name: "Toza suv (3D, lotin)" },
     { file: "tayyor-videolar/loyihalarim-gold-720.mp4", name: "Экологик лойиҳаларим" },
   ];
 })(window);

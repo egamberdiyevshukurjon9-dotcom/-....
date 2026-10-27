@@ -252,7 +252,7 @@
   function openEditor(p, asCopy) {
     editing = p && !asCopy ? p : null;
     $("#editTitle").textContent = editing ? "Лойиҳани таҳрирлаш" : (asCopy ? "Нусха яратиш" : "Янги лойиҳа");
-    $("#fName").value = p ? p.name + (asCopy ? " (нусха)" : "") : "";
+    $("#fName").value = p ? p.name.replace(/\n/g, " ") + (asCopy ? " (нусха)" : "") : "";
     $("#fKicker").value = p ? p.kicker || "" : "";
     $("#fTagline").value = p ? p.tagline || "" : "";
     $("#fUrl").value = p ? p.url || "" : "";
