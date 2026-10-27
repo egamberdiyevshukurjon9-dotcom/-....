@@ -236,3 +236,16 @@ h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; margin: 16px 0; lett
   .modal-inner { padding: 22px 18px; }
   .bar-row { grid-template-columns: 90px 1fr 48px; }
 }
+
+/* Голограмма бўлими */
+.holo-promo { display: grid; grid-template-columns: 1.6fr 1fr; gap: 32px; align-items: center; }
+.holo-mini {
+  position: relative; aspect-ratio: 1; max-width: 260px; width: 100%; margin: 0 auto;
+  background: #000; border-radius: 20px; box-shadow: 0 0 40px rgba(34, 197, 94, .35) inset, var(--shadow);
+}
+.holo-mini span { position: absolute; font-size: 2.6rem; filter: drop-shadow(0 0 10px rgba(56, 189, 248, .8)); }
+.holo-mini span:nth-child(1) { top: 8%; left: 50%; transform: translateX(-50%); }
+.holo-mini span:nth-child(2) { right: 8%; top: 50%; transform: translateY(-50%) rotate(90deg); }
+.holo-mini span:nth-child(3) { bottom: 8%; left: 50%; transform: translateX(-50%) rotate(180deg); }
+.holo-mini span:nth-child(4) { left: 8%; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+@media (max-width: 760px) { .holo-promo { grid-template-columns: 1fr; } }

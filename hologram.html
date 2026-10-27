@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ЭкоГолограмма — ЭкоТаълим</title>
+  <meta name="description" content="Экологик таълим учун 3D голограмма: пирамида (Pepper's ghost), голографик вентилятор ва проектор учун тайёр намойиш. Ер, сув айланиши, дарахт, Орол, иқлим, қайта ишлаш ва яшил энергия.">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/hologram.css">
+</head>
+<body>
+  <canvas id="holo" aria-label="Экологик голограмма"></canvas>
+  <div class="single-caption" id="singleCaption" aria-live="polite"></div>
+
+  <!-- Бошқарув панели (3 сония ҳаракатсизликдан кейин яширинади) -->
+  <header class="hud" id="hud">
+    <a class="hud-btn" href="index.html" title="ЭкоТаълим бош саҳифаси">← ЭкоТаълим</a>
+    <div class="hud-group" id="sceneBtns" role="tablist" aria-label="Саҳналар"></div>
+    <div class="hud-group">
+      <button class="hud-btn" id="modeBtn" title="Намойиш тури (P)">🔺 Пирамида</button>
+      <button class="hud-btn" id="mirrorBtn" title="Кўзгу акси (M)">⇋ Кўзгу</button>
+      <button class="hud-btn" id="autoBtn" title="Автоматик алмашиш (Space)">⏸ Тўхтатиш</button>
+      <button class="hud-btn" id="fsBtn" title="Тўлиқ экран (F)">⛶ Тўлиқ экран</button>
+      <button class="hud-btn" id="recBtn" title="Вентилятор учун видео ёзиш">⏺ Видео</button>
+      <button class="hud-btn" id="devBtn">🛠 Қурилмалар</button>
+      <button class="hud-btn" id="sciBtn">📚 Илмий асос</button>
+      <button class="hud-btn" id="helpBtn" title="Ёрдам (H)">?</button>
+    </div>
+    <label class="hud-range" id="gapWrap" title="Марказий квадратни пирамиданинг кичик учига мослаштиринг">
+      Марказ <input type="range" id="gap" min="0.04" max="0.4" step="0.01" value="0.16">
+    </label>
+  </header>
+
+  <div class="fallback" id="fallback" hidden>
+    <h1>Голограммани кўрсатиб бўлмади</h1>
+    <p>Браузерингиз WebGL'ни қўлламайди ёки у ўчирилган. Chrome, Edge, Firefox ёки Safari'нинг янги версиясида очинг ва «Hardware acceleration» ёқилганини текширинг.</p>
+    <a href="index.html">← ЭкоТаълим</a>
+  </div>
+
+  <!-- Қурилмалар -->
+  <dialog class="panel" id="devPanel">
+    <button class="close" data-close aria-label="Ёпиш">✕</button>
+    <h2>🛠 Ишга тушириш учун қурилмалар</h2>
+    <p class="muted">Бу саҳифа ҳар қандай замонавий браузерда ишлайди. Қуйидаги тўпламлардан бирини танланг.</p>
+
+    <h3>1. Энг арзон: телефон + пирамида (уйда, 10 дақиқада)</h3>
+    <ul>
+      <li>Смартфон (5,5–6,7″, Android 9+ ёки iOS 14+, Chrome/Safari).</li>
+      <li>Шаффоф пластик: CD қутиси қопқоғи ёки 0,5–1 мм PET/акрил варақ.</li>
+      <li>Қайчи/канцелярия пичоғи, шаффоф скотч, чизғич. Шаблон пастда ↓</li>
+      <li>Қоронғи хона; телефон ёрқинлиги 100%, «Тўлиқ экран», режим — 🔺 Пирамида.</li>
+    </ul>
+
+    <h3>2. Синф учун: планшет ёки монитор + акрил пирамида</h3>
+    <ul>
+      <li>Планшет 10–13″ ёки горизонтал ётқизилган монитор 24–32″ (IPS/OLED, ёрқинлик ≥ 350 нит).</li>
+      <li>Акрил пирамида: 2–3 мм шаффоф акрил (оргшиша), лазерда кесилган, 4 томон 45° бурчакда. Тайёр «hologram pyramid display» қутилари ҳам бор.</li>
+      <li>Монитор учун компьютер ёки мини-ПК (Raspberry Pi 5 / 4 ГБ ёки ҳар қандай ноутбук), HDMI кабель, Chrome браузер.</li>
+      <li>Пирамида атрофини қора мато ёки қора картон билан ўраш (контраст ошади).</li>
+    </ul>
+
+    <h3>3. Кўргазма учун: 3D голографик LED-вентилятор</h3>
+    <ul>
+      <li>3D hologram fan, 42–65 см (катта экран учун 2–4 тасини бирлаштириш мумкин), Wi‑Fi/SD-карта орқали бошқарилади.</li>
+      <li>Видео тайёрлаш: режим — ⬛ Битта, «⏺ Видео» тугмаси билан 20–60 сония ёзиб олинг. Вентилятор MP4 талаб қилса, WebM файлни HandBrake ёки <code>ffmpeg -i holo.webm -vf scale=1024:1024 holo.mp4</code> билан ўгиринг.</li>
+      <li>Хавфсизлик: айланаётган парракларга қўл теккизилмайдиган ҳимоя қопқоғи ёки баландликка ўрнатиш шарт.</li>
+    </ul>
+
+    <h3>4. Зал/саҳна учун: проектор + «Pepper's ghost» экран</h3>
+    <ul>
+      <li>Проектор ≥ 3000 лм (Full HD), қисқа масофали бўлса яхши; ноутбук ва HDMI.</li>
+      <li>45° бурчакда ўрнатилган шаффоф голографик плёнка/шиша ёки олдинги «голографик тўр» (holo-gauze).</li>
+      <li>Режим — ⬛ Битта, «⇋ Кўзгу» ёқилади (аксда матн тўғри ўқилиши учун). Орқа фон тўлиқ қора бўлиши керак.</li>
+    </ul>
+
+    <h3>5. Илғор (ҳақиқий 3D): ёруғлик майдони дисплейи</h3>
+    <ul>
+      <li>Light-field / голографик дисплейлар (масалан Looking Glass) — кўзойнаксиз ҳажмли тасвир. Қиммат, лекин бир нечта томошабин бир вақтда турли бурчакдан кўради.</li>
+    </ul>
+
+    <h3>Пирамида шаблони (чоп этиш учун, 1:1 мм)</h3>
+    <p class="muted">Шаблонни 100% масштабда чоп этинг, пластикка қўйиб кесинг, пунктир чизиқлардан букиб, охирги томонни скотч билан ёпиштиринг. Кичик учи экранга қаратилади; экрандаги «Марказ» ползунокини шу кичик учи ўлчамига мосланг.</p>
+    <div class="tpl-btns">
+      <button class="btn" data-tpl="phone">📱 Телефон (10/60/35 мм)</button>
+      <button class="btn" data-tpl="tablet">📟 Планшет (20/120/71 мм)</button>
+      <button class="btn" data-tpl="monitor">🖥 Монитор (40/240/141 мм)</button>
+    </div>
+    <p class="small muted">Ўлчамлар: кичик асос / катта асос / ён томон баландлиги. Ён томон баландлиги = (катта − кичик) / 2 × √2, бу эса 45° қияликни беради. Телефон шаблони A4 га сиғади; планшет ва монитор шаблонини A3/плоттерда чоп этинг ёки 4 та трапецияни алоҳида кесиб, скотч билан бирлаштиринг.</p>
+  </dialog>
+
+  <!-- Илмий асос -->
+  <dialog class="panel" id="sciPanel">
+    <button class="close" data-close aria-label="Ёпиш">✕</button>
+    <h2>📚 Илмий асос ва ушбу голограмма</h2>
+    <p>Бу саҳифа <b>Pepper's ghost</b> (45° шаффоф сирт аксида «ҳавода турган» тасвир) ва голографик вентилятор каби <b>псевдоголографик</b> дисплейлар учун мўлжалланган. Оптик маънодаги ҳақиқий голограмма (интерференция ёрдамида тўлқин фронтини тиклаш) махсус лазер ва ёруғлик модуляторларини талаб қилади. Шунга қарамай, саҳифа замонавий тадқиқотлардаги ғоялардан фойдаланади:</p>
+    <ul>
+      <li><b>Ягона 3D модел, тўрт хил ракурс.</b> Тўртала томон алоҳида видео эмас — битта 3D саҳна тўртта камерадан реал вақтда ҳисобланади, шунинг учун пирамида атрофида айланган томошабин объектнинг ҳақиқий олди, ёни ва орқасини кўради (компьютерда яратилган голограммалар — CGH — ғоясига яқин ёндашув).</li>
+      <li><b>Реал вақт генерацияси.</b> Deep-learning CGH тадқиқотлари голограммани сониянинг улушларида ҳисоблашга интилади; бу ерда ҳам ҳар бир кадр браузерда (WebGL) 60 кадр/с гача ҳисобланади, тайёр видео шарт эмас.</li>
+      <li><b>Таълимда фойдаланиш.</b> Таълим ва музейлардаги голографияга оид шарҳлар 3D визуаллаштириш қизиқиш ва эслаб қолишни оширишини, асосий тўсиқ эса нарх ва инфратузилма эканини кўрсатади — шунинг учун энг арзон вариант (телефон + пластик пирамида) ҳам қўлланади.</li>
+      <li><b>Тегинишга жавоб берувчи голограмма.</b> Экранни бармоқ билан суриб объектни айлантириш, чимчилаб катталаштириш ва тегиниб кейинги фактга ўтиш мумкин.</li>
+      <li><b>Кўзгу аксини тўғрилаш.</b> 45° сиртдаги акс тасвирни чапдан-ўнгга ағдаради; «⇋ Кўзгу» буни ҳисобга олади, матн тўғри ўқилади.</li>
+    </ul>
+    <h3>Фойдаланилган манбалар</h3>
+    <ol class="refs">
+      <li>Hologram Technology in Education: A Systematic Review of Applications, Impacts, and Implementation Challenges. <i>Advances in Consumer Research</i>, 2025. <a href="https://acr-journal.com/article/hologram-technology-in-education-a-systematic-review-of-applications-impacts-and-implementation-challenges-2069/" target="_blank" rel="noopener">acr-journal.com</a></li>
+      <li>The potentials and trends of holography in education: A scoping review. <i>Computers &amp; Education</i> (Elsevier), 2022. <a href="https://www.sciencedirect.com/science/article/abs/pii/S036013152200104X" target="_blank" rel="noopener">sciencedirect.com</a></li>
+      <li>A review of holographic technology in museums: enhancing visitor perception and engagement. <i>npj Heritage Science</i>, 2025. <a href="https://www.researchgate.net/publication/396388594_A_review_of_holographic_technology_in_museums_enhancing_visitor_perception_and_engagement" target="_blank" rel="noopener">researchgate.net</a></li>
+      <li>G. Situ. Deep holography. <i>Light: Advanced Manufacturing</i>, 2022. <a href="https://www.light-am.com/en/article/doi/10.37188/lam.2022.013" target="_blank" rel="noopener">doi:10.37188/lam.2022.013</a></li>
+      <li>Holography and its applications for industry 4.0: An overview. Elsevier. <a href="https://www.sciencedirect.com/science/article/pii/S2667345222000141" target="_blank" rel="noopener">sciencedirect.com</a></li>
+      <li>Digital holography and its multidimensional imaging applications: a review. Springer Nature. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6025206/" target="_blank" rel="noopener">PMC6025206</a></li>
+      <li>Review for holography display enabled by metasurfaces. Elsevier. <a href="https://www.sciencedirect.com/science/article/abs/pii/S0143816625003768" target="_blank" rel="noopener">sciencedirect.com</a></li>
+      <li>Journal of Holography Applications in Physics (Scopus Q2). <a href="https://jhap.du.ac.ir/" target="_blank" rel="noopener">jhap.du.ac.ir</a> · Scientific Reports — Holographic Systems collection. <a href="https://www.nature.com/collections/djfdfijhgh" target="_blank" rel="noopener">nature.com</a></li>
+    </ol>
+    <h3>Экологик маълумотлар манбалари</h3>
+    <p class="small muted">WMO (2024 йил ҳарорати), NOAA (CO₂), NASA GISTEMP (ҳарорат аномалиялари, соддалаштирилган), USGS (сув захиралари), Natural Earth (қуруқлик чегаралари). Орол саҳнаси — схематик тасвир.</p>
+  </dialog>
+
+  <!-- Ёрдам -->
+  <dialog class="panel" id="helpPanel">
+    <button class="close" data-close aria-label="Ёпиш">✕</button>
+    <h2>Қандай ишлатилади?</h2>
+    <ol>
+      <li>Қурилмани қоронғи хонага қўйинг, экран ёрқинлигини 100% га қўйинг.</li>
+      <li><b>🔺 Пирамида</b> — экранни горизонтал ётқизиб, марказга пирамидани (кичик учи пастга) қўйинг. <b>⬛ Битта</b> — вентилятор, проектор ёки оддий экран учун.</li>
+      <li>«Марказ» ползунокини пирамиданинг кичик учига мослаштиринг.</li>
+      <li>«⛶ Тўлиқ экран» ни босинг. 3 сониядан кейин бошқарув панели ўзи яширинади — сичқонча ёки экранга тегинсангиз қайтади.</li>
+    </ol>
+    <h3>Тугмалар</h3>
+    <ul>
+      <li><kbd>←</kbd> <kbd>→</kbd> — олдинги/кейинги саҳна · <kbd>1</kbd>–<kbd>7</kbd> — саҳна танлаш</li>
+      <li><kbd>Space</kbd> — автоматик алмашишни тўхтатиш/давом эттириш</li>
+      <li><kbd>P</kbd> — пирамида/битта · <kbd>M</kbd> — кўзгу · <kbd>F</kbd> — тўлиқ экран · <kbd>H</kbd> — ёрдам</li>
+      <li>Суриш — айлантириш · ғилдирак/чимчилаш — катталаштириш · тегиниш — кейинги факт</li>
+    </ul>
+    <p class="small muted">Киоск режими учун ҳавола: <code>hologram.html?mode=single&amp;scene=3&amp;ui=0</code> (<code>mode</code>: pyramid | single, <code>scene</code>: 1–7, <code>ui=0</code> — панелсиз).</p>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="js/vendor/three.min.js"></script>
+  <script src="js/holo-geo.js"></script>
+  <script src="js/hologram.js"></script>
+</body>
+</html>
