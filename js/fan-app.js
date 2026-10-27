@@ -393,6 +393,29 @@
     msg.textContent = "README топилмади (репозиторий махфий бўлиши ёки интернет йўқ бўлиши мумкин). Маълумотни қўлда киритинг.";
   });
 
+  /* ---------- Тайёр видеолар ---------- */
+  (function readyVideos() {
+    const box = $("#readyList");
+    if (!box || !global_ready()) return;
+    for (const v of window.FAN_READY) {
+      const b = el("button", { class: "chip", type: "button" }, "⬇ " + v.name);
+      b.addEventListener("click", async () => {
+        const old = b.textContent; b.textContent = "Юкланмоқда…"; b.disabled = true;
+        try {
+          const r = await fetch(v.file);
+          if (!r.ok) throw new Error(r.status);
+          await FanExport.download(await r.blob(), v.file.split("/").pop());
+        } catch (e) { warn("Тайёр видеони юклаб бўлмади. Пастда ўзингиз яратинг."); }
+        b.textContent = old; b.disabled = false;
+      });
+      box.appendChild(b);
+    }
+  })();
+  function global_ready() { return Array.isArray(window.FAN_READY) && window.FAN_READY.length; }
+
+  // Claude саҳифаси ичида (қум ҳовуз) ташқи fetch ёпиқ — GitHub'дан олиш тугмасини яширамиз
+  if (window.claude && window.claude.use) { const g = document.querySelector("fieldset.gh"); if (g) g.hidden = true; }
+
   /* ---------- Бошланиш ---------- */
   renderChips();
   rebuild();

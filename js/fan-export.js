@@ -119,7 +119,15 @@
     return new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("PNG"))), "image/png"));
   }
 
-  function download(blob, name) {
+  /* Сақлаш: Claude саҳифасида (Artifact) «downloads» имконияти орқали — тасдиқ сўралади,
+     телефонда тизимнинг «Улашиш» ойнаси чиқади; оддий браузерда — одатий юклаб олиш. */
+  async function download(blob, name) {
+    try {
+      const d = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+      if (d) { await d.save({ filename: name, data: blob }); return; }
+    } catch (e) {
+      if (e && e.code === "declined") return;
+    }
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = name;

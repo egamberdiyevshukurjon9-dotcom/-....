@@ -94,4 +94,12 @@
       stats: [{ v: 3, l: "лойиҳа, битта мақсад", suffix: "" }],
     },
   ];
+
+  /* Тайёр видеолар (tools/render-project-videos.js билан яратилган, 720×720, H.264, 30 к/с) */
+  global.FAN_READY = [
+    { file: "tayyor-videolar/ekomun-eko-720.mp4", name: "Ekomun" },
+    { file: "tayyor-videolar/yashil-belbog-eko-720.mp4", name: "Яшил белбоғ" },
+    { file: "tayyor-videolar/ekogolo-ocean-720.mp4", name: "ЭкоГолограмма" },
+    { file: "tayyor-videolar/loyihalarim-gold-720.mp4", name: "Экологик лойиҳаларим" },
+  ];
 })(window);
