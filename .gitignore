@@ -21,3 +21,7 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+# ЭкоГолограмма: вентилятор видеолари ва eko.bin
+fan-videos/
+*.bin

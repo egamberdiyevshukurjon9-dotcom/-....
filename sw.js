@@ -1,5 +1,5 @@
 /* ЭкоТаълим — офлайн иш учун service worker */
-const CACHE = "ekotalim-v3";
+const CACHE = "ekotalim-v4";
 const ASSETS = ["./", "index.html", "css/style.css", "js/data.js", "js/app.js", "manifest.json", "icon.svg",
   "hologram.html", "css/hologram.css", "js/hologram.js", "js/holo-geo.js", "js/vendor/three.min.js"];
 

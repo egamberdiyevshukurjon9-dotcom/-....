@@ -36,7 +36,9 @@ body.mirror-single canvas#holo, body.mirror-single .single-caption { transform: 
 .hud-range input { width: 120px; accent-color: var(--accent); }
 body.idle .hud { opacity: 0; pointer-events: none; }
 body.idle { cursor: none; }
-body.single .hud-range { display: none; }
+body.single .hud-range, body.fan .hud-range { display: none; }
+/* Вентилятор: квадрат кадр экран марказида */
+body.fan canvas#holo { inset: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 
 /* Битта режимдаги ёзув */
 .single-caption {
