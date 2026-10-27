@@ -1,7 +1,8 @@
 /* ЭкоТаълим — офлайн иш учун service worker */
-const CACHE = "ekotalim-v4";
+const CACHE = "ekotalim-v5";
 const ASSETS = ["./", "index.html", "css/style.css", "js/data.js", "js/app.js", "manifest.json", "icon.svg",
-  "hologram.html", "css/hologram.css", "js/hologram.js", "js/holo-geo.js", "js/vendor/three.min.js"];
+  "hologram.html", "css/hologram.css", "js/hologram.js", "js/holo-geo.js", "js/vendor/three.min.js",
+  "fan.html", "css/fan.css", "js/fan-engine.js", "js/fan-projects.js", "js/fan-export.js", "js/fan-app.js", "js/vendor/mp4-muxer.js"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

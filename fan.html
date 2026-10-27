@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="uz-Cyrl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Вентилятор студияси — ЭкоГолограмма</title>
+  <meta name="description" content="Лойиҳангизни танланг — 3D голографик LED-вентилятор учун тайёр MP4 видео олинг. Телефонда ишлайди, интернет шарт эмас.">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/fan.css">
+</head>
+<body>
+  <header class="top">
+    <a class="back" href="index.html">← ЭкоТаълим</a>
+    <h1>🌀 Вентилятор студияси</h1>
+    <a class="back" href="hologram.html?mode=fan" title="7 та 3D саҳна">🔺 3D саҳналар</a>
+  </header>
+
+  <main>
+    <!-- Кўриб чиқиш -->
+    <section class="stage" aria-label="Кўриб чиқиш">
+      <div class="screen">
+        <canvas id="preview" width="560" height="560" aria-label="Вентиляторда кўринадиган тасвир"></canvas>
+      </div>
+      <div class="transport">
+        <button class="icon-btn" id="playBtn" aria-label="Тўхтатиш / давом эттириш">⏸</button>
+        <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Вақт">
+        <span class="time" id="timeLbl">0:00 / 0:00</span>
+      </div>
+      <label class="chk">
+        <input type="checkbox" id="simChk">
+        <span>Вентиляторда қандай кўринишини кўрсатиш <small>(майда ёзув ўқиладими — текширинг)</small></span>
+      </label>
+    </section>
+
+    <!-- 1. Лойиҳа -->
+    <section class="card">
+      <h2><span class="num">1</span> Лойиҳани танланг</h2>
+      <div class="chips" id="projectChips" role="radiogroup" aria-label="Лойиҳалар"></div>
+      <div class="row">
+        <button class="btn" id="newBtn">➕ Янги лойиҳа</button>
+        <button class="btn ghost" id="editBtn">✏️ Таҳрирлаш</button>
+        <button class="btn ghost" id="saveJsonBtn" title="Ўз лойиҳаларингизни файлга сақлаш">⬇ Файлга</button>
+        <button class="btn ghost" id="loadJsonBtn" title="Файлдан лойиҳаларни юклаш">⬆ Файлдан</button>
+        <input type="file" id="jsonFile" accept=".json,application/json" hidden>
+      </div>
+    </section>
+
+    <!-- 2. Кўриниш -->
+    <section class="card">
+      <h2><span class="num">2</span> Кўриниш</h2>
+      <div class="chips" id="themeChips" role="radiogroup" aria-label="Ранг мавзуси"></div>
+      <div class="grid2">
+        <label>Тезлик
+          <select id="speedSel">
+            <option value="0.75">Секин</option>
+            <option value="1" selected>Оддий</option>
+            <option value="1.3">Тез</option>
+          </select>
+        </label>
+        <label>Видео ўлчами (квадрат)
+          <select id="pxSel">
+            <option value="448">448 × 448 — кичик вентилятор</option>
+            <option value="720">720 × 720</option>
+            <option value="1080" selected>1080 × 1080 — тавсия</option>
+            <option value="1440">1440 × 1440</option>
+            <option value="2048">2048 × 2048 — катта вентилятор</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint" id="infoLine"></p>
+    </section>
+
+    <!-- 3. Тайёрлаш -->
+    <section class="card" id="makeCard">
+      <h2><span class="num">3</span> Видеони тайёрланг</h2>
+      <button class="btn big" id="makeBtn">🎬 MP4 видео яратиш</button>
+      <div class="row alt-row"><button class="btn ghost small" id="pngBtn" title="Баъзи вентилятор иловалари битта расмни ҳам қабул қилади">🖼 Фақат расм (PNG)</button></div>
+      <div class="progress" id="progress" hidden>
+        <div class="bar"><i id="bar"></i></div>
+        <div class="progress-row"><span id="progLbl">0%</span><button class="btn ghost small" id="cancelBtn">Бекор қилиш</button></div>
+        <p class="hint">Экранни ўчирманг ва шу саҳифада туринг — видео телефоннинг ўзида тайёрланади.</p>
+      </div>
+      <p class="warn" id="warnLine" hidden></p>
+
+      <div class="result" id="result" hidden>
+        <video id="resVideo" controls loop muted playsinline></video>
+        <p id="resInfo" class="hint"></p>
+        <div class="row">
+          <button class="btn primary" id="dlBtn">⬇ Юклаб олиш</button>
+          <button class="btn" id="shareBtn" hidden>📤 Вентилятор иловасига юбориш</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Вентиляторга юклаш -->
+    <section class="card">
+      <h2><span class="num">4</span> Вентиляторга юкланг</h2>
+      <ol class="steps">
+        <li>Вентиляторни USB орқали ёқинг (қопқоғи ёпиқ бўлсин, айланаётган паррак ушланмайди).</li>
+        <li>Телефонда вентилятор Wi‑Fi тармоғига уланинг (номи ва паролини қурилма қўлланмасидан қаранг).</li>
+        <li>Қурилма иловасини очинг → <b>Видео қўшиш / Upload</b> → шу яратилган MP4 файлни танланг. Ёки юқоридаги «📤 юбориш» тугмаси орқали иловани танланг.</li>
+        <li>Юклангандан кейин иловада <b>Play</b> ни босинг. Видео ўзи такрорланади.</li>
+      </ol>
+      <details>
+        <summary>Яхши кўриниши учун маслаҳатлар</summary>
+        <ul class="tips">
+          <li>Қоронғироқ хона ёки қора фон — тасвир «ҳавода» яхши кўринади. Қуёш нури тўғри тушмасин.</li>
+          <li>Фон ҳар доим тўлиқ қора: қора жойда LED ўчиқ бўлади ва паррак кўринмайди.</li>
+          <li>Кичик вентиляторда ёзув ўқилиши учун «Вентиляторда қандай кўринишини кўрсатиш» ни ёқиб текширинг. Узун ёзувларни қисқартиринг.</li>
+          <li>Иловада ўлчам сўралса — иловада кўрсатилган квадрат ўлчамни танланг. Билмасангиз — 1080 × 1080: илова ўзи кичрайтиради.</li>
+          <li>Файл иловада очилмаса: 720 × 720 билан яна яратиб кўринг.</li>
+        </ul>
+      </details>
+    </section>
+  </main>
+
+  <!-- Лойиҳани қўшиш / таҳрирлаш -->
+  <dialog id="editor" class="editor">
+    <form method="dialog" id="editForm">
+      <h2 id="editTitle">Янги лойиҳа</h2>
+
+      <fieldset class="gh">
+        <legend>GitHub'дан автоматик олиш (ихтиёрий)</legend>
+        <div class="row">
+          <input type="text" id="ghUrl" placeholder="https://github.com/эгаси/репозиторий" inputmode="url" autocomplete="off">
+          <button type="button" class="btn" id="ghBtn">Олиш</button>
+        </div>
+        <p class="hint" id="ghMsg"></p>
+      </fieldset>
+
+      <label>Номи <input type="text" id="fName" maxlength="40" required placeholder="Масалан: Ekomun"></label>
+      <label>Тепадаги ёзув <input type="text" id="fKicker" maxlength="40" placeholder="Масалан: Экологияни яхшилаш учун"></label>
+      <label>Шиор (пастдаги ёзув) <input type="text" id="fTagline" maxlength="60" placeholder="Қисқа жумла, ≈ 35 белгигача"></label>
+      <label>Сайт манзили (охирида) <input type="text" id="fUrl" maxlength="40" placeholder="Қисқа бўлсин: ekomun.uz"></label>
+      <div class="grid2">
+        <label>Асосий иконка <select id="fIcon"></select></label>
+        <label>Ранг мавзуси <select id="fTheme"></select></label>
+      </div>
+      <label>Хусусиятлар <small>(ҳар сатр — алоҳида саҳна, 8 тагача)</small>
+        <textarea id="fFeatures" rows="6" placeholder="Интерактив курслар&#10;Жонли ҳаво сифати&#10;[trophy] Эко-ўйинлар"></textarea>
+      </label>
+      <label>Рақамлар <small>(ҳар сатр: рақам ва изоҳ, 4 тагача)</small>
+        <textarea id="fStats" rows="3" placeholder="60 даража&#10;13 шаҳар"></textarea>
+      </label>
+      <details class="iconhelp">
+        <summary>Иконка номлари</summary>
+        <p id="iconList"></p>
+        <p class="hint">Иконкани сатр бошида <code>[ном]</code> кўринишида ёзсангиз, ўша танланади. Ёзмасангиз — матнга қараб ўзи топилади.</p>
+      </details>
+      <p class="warn" id="editWarn" hidden></p>
+      <div class="row end">
+        <button type="button" class="btn danger" id="delBtn" hidden>🗑 Ўчириш</button>
+        <button type="button" class="btn ghost" id="cancelEdit">Бекор қилиш</button>
+        <button type="submit" class="btn primary" id="saveEdit" value="save">Сақлаш</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/vendor/mp4-muxer.js"></script>
+  <script src="js/fan-engine.js"></script>
+  <script src="js/fan-projects.js"></script>
+  <script src="js/fan-export.js"></script>
+  <script src="js/fan-app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(function () {});
+  </script>
+</body>
+</html>

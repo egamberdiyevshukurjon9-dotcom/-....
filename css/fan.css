@@ -1,0 +1,118 @@
+/* ЭкоГолограмма — вентилятор студияси (телефон биринчи, қора мавзу) */
+:root {
+  --bg: #000;
+  --panel: #0b1410;
+  --panel-2: #101d17;
+  --text: #e8f3ec;
+  --muted: #9bb3a2;
+  --line: #24382b;
+  --accent: #22c55e;
+  --accent-2: #38bdf8;
+  --danger: #ef4444;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; color: var(--text); background: var(--bg);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  line-height: 1.5; -webkit-text-size-adjust: 100%;
+}
+main { width: min(720px, 100%); margin: 0 auto; padding: 0 16px calc(40px + env(safe-area-inset-bottom)); }
+
+.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: max(10px, env(safe-area-inset-top)) 16px 10px;
+  position: sticky; top: 0; z-index: 5; background: rgba(0, 0, 0, .92); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.top h1 { margin: 0; font-size: 1.05rem; font-weight: 700; text-align: center; flex: 1; }
+.back { color: var(--muted); text-decoration: none; font-size: .85rem; white-space: nowrap; }
+.back:hover { color: var(--accent); }
+
+/* Кўриб чиқиш */
+.stage { padding: 14px 0 6px; text-align: center; }
+.screen {
+  width: min(86vw, 440px); aspect-ratio: 1; margin: 0 auto; border-radius: 50%;
+  background: #000; border: 1px solid var(--line); box-shadow: 0 0 40px rgba(34, 197, 94, .10); overflow: hidden;
+}
+.screen canvas { width: 100%; height: 100%; display: block; }
+.transport { display: flex; align-items: center; gap: 10px; margin: 12px auto 4px; width: min(100%, 440px); }
+.transport input[type=range] { flex: 1; accent-color: var(--accent); min-width: 0; }
+.time { font-variant-numeric: tabular-nums; font-size: .8rem; color: var(--muted); min-width: 84px; text-align: right; }
+.chk { display: flex; align-items: flex-start; gap: 10px; text-align: left; width: min(100%, 440px); margin: 8px auto 0; font-size: .9rem; color: var(--text); cursor: pointer; }
+.chk input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+.chk small { color: var(--muted); }
+
+/* Карточкалар */
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-top: 14px; }
+.card h2 { margin: 0 0 12px; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; }
+.num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #04140a; font-size: .85rem; font-weight: 800; flex: none; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip {
+  font: inherit; font-size: .92rem; color: var(--text); background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 9px 14px; cursor: pointer; min-height: 44px;
+}
+.chip[aria-checked=true] { background: var(--accent); border-color: var(--accent); color: #04140a; font-weight: 700; }
+.chip:focus-visible, .btn:focus-visible, .icon-btn:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row.end { justify-content: flex-end; margin-top: 14px; }
+.btn {
+  font: inherit; font-size: .92rem; color: var(--text); background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 12px; padding: 10px 14px; cursor: pointer; min-height: 44px;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #04140a; font-weight: 700; }
+.btn.ghost { background: transparent; }
+.btn.danger { color: #fecaca; border-color: #7f1d1d; margin-right: auto; }
+.btn.small { min-height: 36px; padding: 6px 10px; font-size: .85rem; }
+.btn.big { width: 100%; min-height: 58px; font-size: 1.1rem; font-weight: 800; background: linear-gradient(135deg, #16a34a, #22c55e); border-color: #22c55e; color: #03110a; }
+.btn[disabled] { opacity: .5; cursor: progress; }
+.icon-btn { font: inherit; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); cursor: pointer; flex: none; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
+label { display: block; font-size: .85rem; color: var(--muted); margin-top: 10px; }
+label small { color: var(--muted); }
+select, input[type=text], textarea {
+  display: block; width: 100%; margin-top: 4px; font: inherit; font-size: 1rem; color: var(--text);
+  background: #060d09; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-height: 44px;
+}
+textarea { resize: vertical; }
+select:focus, input:focus, textarea:focus { outline: 2px solid var(--accent-2); outline-offset: 1px; }
+
+.hint { margin: 10px 0 0; font-size: .82rem; color: var(--muted); }
+.warn { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #2a1d05; border: 1px solid #7a5a12; color: #fde68a; font-size: .88rem; }
+
+.progress { margin-top: 14px; }
+.bar { height: 12px; background: #0a1a12; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #16a34a, #86efac); transition: width .15s; }
+.progress-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-variant-numeric: tabular-nums; }
+
+.alt-row { margin-top: 8px; justify-content: center; }
+.result { margin-top: 16px; }
+.result video { width: min(100%, 360px); aspect-ratio: 1; display: block; margin: 0 auto 8px; border-radius: 12px; background: #000; border: 1px solid var(--line); }
+.result .hint { text-align: center; }
+.result .row { justify-content: center; margin-top: 10px; }
+
+.steps { margin: 0; padding-left: 20px; }
+.steps li { margin: 8px 0; }
+.tips { margin: 8px 0 0; padding-left: 20px; color: var(--muted); font-size: .9rem; }
+.tips li { margin: 6px 0; }
+details > summary { cursor: pointer; margin-top: 12px; color: var(--accent-2); }
+
+/* Таҳрирлаш ойнаси */
+dialog.editor {
+  width: min(560px, calc(100vw - 20px)); max-height: calc(100dvh - 20px); overflow: auto;
+  background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 16px; padding: 16px;
+}
+dialog.editor::backdrop { background: rgba(0, 0, 0, .8); }
+dialog.editor h2 { margin: 0 0 4px; font-size: 1.1rem; }
+fieldset.gh { border: 1px dashed var(--line); border-radius: 12px; margin: 10px 0 4px; padding: 8px 12px 12px; }
+fieldset.gh legend { color: var(--muted); font-size: .8rem; padding: 0 6px; }
+fieldset.gh input { flex: 1; min-width: 0; margin-top: 0; }
+.iconhelp p { color: var(--muted); font-size: .85rem; word-spacing: 6px; }
+code { background: #060d09; padding: 1px 5px; border-radius: 5px; }
+
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
