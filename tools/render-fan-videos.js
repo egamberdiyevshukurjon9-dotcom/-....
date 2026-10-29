@@ -11,6 +11,7 @@
  *   node tools/render-fan-videos.js                  # 7 саҳна, 1080×1080, 30 кадр/с, 24 с
  *   node tools/render-fan-videos.js --px 1024 --seconds 30 --scenes 1,3,4 --out fan-videos
  *   node tools/render-fan-videos.js --all            # қўшимча: барча саҳналар битта видеода
+ *   node tools/render-fan-videos.js --small --px 720 # кичик вентилятор (PD13): йирик ёзув, факт алоҳида кадрда
  */
 "use strict";
 const http = require("http");
@@ -28,6 +29,8 @@ const OUT = path.resolve(opt("out", "fan-videos"));
 const ROOT = path.resolve(__dirname, "..");
 const NAMES = ["01-yer", "02-suv-aylanishi", "03-daraxt", "04-orol", "05-iqlim", "06-qayta-ishlash", "07-yashil-energiya"];
 const SCENES = opt("scenes", "1,2,3,4,5,6,7").split(",").map(Number);
+const SMALL = args.includes("--small");
+const PREFIX = SMALL ? "pd13-" : "";
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml" };
 function serve() {
@@ -65,7 +68,7 @@ function ffmpeg(file) {
 async function render(browser, base, scene, frames, file) {
   const page = await browser.newPage({ viewport: { width: 800, height: 800 } });
   await page.addInitScript(VIRTUAL_TIME);
-  await page.goto(`${base}/hologram.html?mode=fan&ui=0&px=${PX}&scene=${scene}&auto=${frames > SECONDS * FPS ? 1 : 0}`);
+  await page.goto(`${base}/hologram.html?mode=fan&ui=0&px=${PX}&scene=${scene}&auto=${frames > SECONDS * FPS ? 1 : 0}${SMALL ? "&small=1" : ""}`);
   await page.evaluate(() => document.fonts.ready);
   for (let i = 0; i < 3; i++) await page.evaluate(() => window.__step(0)); // ёзувлар шрифт юклангач қайта чизилади
   const enc = ffmpeg(file);
@@ -86,8 +89,8 @@ async function render(browser, base, scene, frames, file) {
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
   try {
-    for (const n of SCENES) await render(browser, base, n, Math.round(SECONDS * FPS), path.join(OUT, `${NAMES[n - 1]}-${PX}.mp4`));
-    if (args.includes("--all")) await render(browser, base, 1, Math.round(SECONDS * FPS * NAMES.length), path.join(OUT, `00-hammasi-${PX}.mp4`));
+    for (const n of SCENES) await render(browser, base, n, Math.round(SECONDS * FPS), path.join(OUT, `${PREFIX}${NAMES[n - 1]}-${PX}.mp4`));
+    if (args.includes("--all")) await render(browser, base, 1, Math.round(SECONDS * FPS * NAMES.length), path.join(OUT, `${PREFIX}00-hammasi-${PX}.mp4`));
   } finally {
     await browser.close();
     srv.close();

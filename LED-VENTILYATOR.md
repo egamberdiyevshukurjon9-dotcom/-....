@@ -218,7 +218,13 @@ node tools/render-fan-videos.js --px 2048 --seconds 30 --all
 `05-iqlim`, `06-qayta-ishlash`, `07-yashil-energiya` ва `--all` билан `00-hammasi` (барча
 саҳналар кетма-кет).
 
-### 4.3. Ўзи ясалган вентилятор учун
+### 4.3. Кичик вентилятор (PD13 ва ўхшашлари)
+
+Битта парракли кичик вентиляторда LED кам бўлади, шунинг учун `?small=1` режимидан фойдаланинг.
+Бу режимда ёзувлар йирик чиқади ва факт алоҳида кадрда кўрсатилади. Тўлиқ йўриқнома:
+[PD13-VENTILYATOR.md](PD13-VENTILYATOR.md).
+
+### 4.4. Ўзи ясалган вентилятор учун
 
 ```bash
 python3 tools/mp4-to-polar.py fan-videos/01-yer-1080.mp4 eko.bin --leds 72 --slots 360 --preview korinish.png
