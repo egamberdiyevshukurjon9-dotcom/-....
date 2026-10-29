@@ -23,6 +23,9 @@
   const kiosk = qs.get("ui") === "0";
   // Вентилятор видеоси квадрат ва аниқ ўлчамда бўлиши керак (одатда 1024–2048 px)
   const FAN_PX = clamp(parseInt(qs.get("px"), 10) || 1080, 256, 2048);
+  // Кичик вентилятор (PD13 каби, битта паррак, LED кам): йирик ёзув, факт алоҳида кадрда
+  const SMALL_FAN = qs.get("small") === "1";
+  let factCard = false;
   const mirrored = () => (prefs.mode === "pyramid" ? prefs.mirror : prefs.mode === "single" && prefs.mirrorSingle);
 
   const toastEl = $("#toast");
@@ -642,7 +645,7 @@
     c.font = `500 40px ${FONT}`;
     wrap(c, fact, W - 60).slice(0, s.subtitle ? 3 : 4).forEach((ln, i) => c.fillText(ln, W / 2, y + i * 48));
     capTex.needsUpdate = true;
-    if (prefs.mode === "fan") drawFanCaption(s, fact);
+    if (prefs.mode === "fan") (SMALL_FAN ? drawSmallFanCaption : drawFanCaption)(s, fact);
 
     const sc = $("#singleCaption");
     sc.innerHTML = "";
@@ -688,9 +691,61 @@
     fanTex.needsUpdate = true;
   }
 
+  // Кичик вентилятор: майда матн ўқилмайди — ярим вақт объект ва сарлавҳа, ярим вақт фақат факт (катта шрифт)
+  function drawSmallFanCaption(s, fact) {
+    const c = fanCtx, N = fanCanvas.width, R = N / 2;
+    const chord = (y) => 2 * Math.sqrt(Math.max(0, R * R - (y - R) * (y - R))) * 0.84;
+    c.clearRect(0, 0, N, N);
+    c.shadowBlur = 0;
+    c.fillStyle = "#000";
+    c.beginPath(); c.rect(0, 0, N, N); c.arc(R, R, R, 0, TAU, true); c.fill();
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.shadowColor = "rgba(34,197,94,.8)";
+    if (!factCard) {
+      c.shadowBlur = 6;
+      c.fillStyle = "#86efac";
+      let size = 92, lines;
+      for (; size >= 64; size -= 4) {
+        c.font = `800 ${size}px ${FONT}`;
+        lines = wrap(c, s.title, chord(150));
+        if (lines.length === 1) break;
+      }
+      lines = lines.slice(0, 2);
+      const ty = lines.length > 1 ? 150 : 190;
+      c.lineJoin = "round";
+      c.lineWidth = 18;
+      c.strokeStyle = "#000"; // қора ҳошия: орқадаги объект ёзувга қўшилиб кетмайди
+      lines.forEach((ln, i) => {
+        const y = ty + i * size * 1.05, w = chord(ty - size / 2 + i * size);
+        c.save(); c.shadowBlur = 0; c.strokeText(ln, R, y, w); c.restore();
+        c.fillText(ln, R, y, w);
+      });
+      if (s.subtitle) {
+        c.fillStyle = "#fde68a";
+        c.font = `700 58px ${FONT}`;
+        const sub = s.subtitle.split(" · ")[0].split(" (")[0];
+        c.save(); c.shadowBlur = 0; c.lineWidth = 14; c.strokeText(sub, R, 880, chord(900)); c.restore();
+        c.fillText(sub, R, 880, chord(900));
+      }
+    } else {
+      c.shadowBlur = 4;
+      c.fillStyle = "#ecfdf5";
+      let size = 84, lines;
+      for (; size >= 52; size -= 4) {
+        c.font = `700 ${size}px ${FONT}`;
+        lines = wrap(c, fact, N * 0.72);
+        if (lines.length * size * 1.18 <= N * 0.66) break;
+      }
+      const lh = size * 1.18, y0 = R - ((lines.length - 1) * lh) / 2;
+      lines.forEach((ln, i) => c.fillText(ln, R, y0 + i * lh, chord(y0 + i * lh + (y0 + i * lh > R ? size / 2 : -size / 2))));
+    }
+    fanTex.needsUpdate = true;
+  }
+
   /* ---------- Камералар ва пирамида композицияси ---------- */
   // Пирамидада объект ташқи четга яқин ва ингичка бўлиши керак (марказ яқинида кўринишлар устма-уст тушади)
-  const FRAMING = { pyramid: { dist: 8.8, y: -0.05, lift: 1.6 }, single: { dist: 6.4, y: -0.65, lift: 1.0 }, fan: { dist: 8.8, y: -0.2, lift: 1.0 } };
+  const FRAMING = { pyramid: { dist: 8.8, y: -0.05, lift: 1.6 }, single: { dist: 6.4, y: -0.65, lift: 1.0 }, fan: { dist: 8.8, y: -0.2, lift: 1.0 }, smallFan: { dist: 8.2, y: 0.15, lift: 1.0 } };
   const TARGET = new THREE.Vector3();
   // Пастки томошабин — олд томон, ўнг — ўнг ён, юқори — орқа, чап — чап ён
   const viewDefs = [
@@ -792,9 +847,12 @@
     } else if (prefs.mode === "fan") {
       singleCam.aspect = 1;
       singleCam.updateProjectionMatrix();
-      placeCam(singleCam, 0, 1, FRAMING.fan);
+      const card = SMALL_FAN && factTime > FACT_SECONDS / 2;
+      if (card !== factCard) { factCard = card; captionDirty = true; drawCaption(); }
+      placeCam(singleCam, 0, 1, SMALL_FAN ? FRAMING.smallFan : FRAMING.fan);
       renderer.setRenderTarget(null);
-      renderer.render(world, singleCam);
+      if (factCard) renderer.clear();
+      else renderer.render(world, singleCam);
       renderer.autoClear = false;
       renderer.render(fanScene, capCam);
       renderer.autoClear = true;
