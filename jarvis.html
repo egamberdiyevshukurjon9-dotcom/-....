@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Eko-JARVIS — EkoTaʼlim</title>
+  <meta name="description" content="Qoʻl harakati bilan boshqariladigan ekologik golografik stol: shisha quti (Pepper's ghost) va proyektor uchun. Kamera orqali barmoq bilan bosish va surish.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/jarvis.css">
+</head>
+<body>
+  <canvas id="stage" aria-label="Eko-JARVIS golografik ekrani"></canvas>
+
+  <!-- Kamera koʻrinishi (qoʻl skeleti bilan) -->
+  <div class="campip" id="camPip" hidden>
+    <video id="cam" playsinline muted></video>
+    <canvas id="camDraw"></canvas>
+  </div>
+
+  <header class="bar" id="bar">
+    <a class="b" href="index.html" title="Bosh sahifa">← EkoTaʼlim</a>
+    <button class="b on" id="camBtn" title="Kamerani yoqish (C)">📷 Kamerani yoqish</button>
+    <select class="b" id="camSel" title="Qaysi kamera" hidden></select>
+    <button class="b" id="modeBtn" title="Koʻrsatish turi (R)">🖥 Oddiy ekran</button>
+    <button class="b" id="flipXBtn" title="Chap-oʻng aks (X)">⇋ Koʻzgu</button>
+    <button class="b" id="flipYBtn" title="Teskari (Y)">⇅ Teskari</button>
+    <button class="b" id="calBtn" title="Kamerani ekranga moslash (K)">🎯 Kalibrlash</button>
+    <button class="b" id="pipBtn" title="Kamera oynasi (V)">👁 Kamera oynasi</button>
+    <button class="b" id="fsBtn" title="Toʻliq ekran (F)">⛶ Toʻliq ekran</button>
+    <button class="b" id="helpBtn" title="Yordam (H)">?</button>
+  </header>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog class="panel" id="help">
+    <button class="close" data-close aria-label="Yopish">✕</button>
+    <h2>Eko-JARVIS: qanday ishlatiladi</h2>
+    <h3>Qoʻl harakatlari</h3>
+    <ul>
+      <li><b>Koʻrsatkich barmoq</b> bilan ishora qiling, ekranda koʻk halqa (kursor) yuradi.</li>
+      <li><b>Bosish:</b> bosh barmoq va koʻrsatkich barmoqni bir-biriga tekkizing (chimdish). Yoki kursorni tugma ustida 1 soniya ushlab turing.</li>
+      <li><b>Surish (aylantirish):</b> chimdib turgan holda qoʻlni suring. Yer sharini aylantiradi, Orol yilini oʻzgartiradi.</li>
+      <li><b>Keyingi sahna:</b> ochiq kaftni tez chapga yoki oʻngga silkiting.</li>
+      <li>Kamera boʻlmasa ham ishlaydi: sichqoncha, sensorli ekran va ← → tugmalari.</li>
+    </ul>
+    <h3>Rejimlar</h3>
+    <ul>
+      <li><b>🖥 Oddiy ekran:</b> monitor yoki televizor.</li>
+      <li><b>🔷 Shisha quti:</b> ekran tasviri qiya shishaga qaytadi (Pepper's ghost). Yozuv teskari koʻrinsa ⇋ yoki ⇅ ni bosing.</li>
+      <li><b>📽 Proyektor stoli:</b> proyektor stolga yuqoridan tushiradi. 🎯 Kalibrlashni bir marta qiling: 4 burchakdagi nishonga barmoq bilan tegib, chimdang.</li>
+    </ul>
+    <h3>Kamera</h3>
+    <p class="muted">Har qanday USB veb-kamera yoki telefon ishlaydi. Telefonni kamera qilish uchun telefonga va kompyuterga bepul <b>Iriun Webcam</b> yoki <b>DroidCam</b> oʻrnating, keyin bu yerda 📷 tanlovidan oʻsha kamerani tanlang. Kamerani ekran (yoki stol) tepasiga, qoʻl koʻrinadigan qilib qoʻying. Xona juda qorongʻi boʻlmasin: qoʻl yorugʻda boʻlishi kerak.</p>
+    <p class="muted">Rasm faqat sizning kompyuteringizda qayta ishlanadi, internetga yuborilmaydi. Birinchi ochishda qoʻlni taniydigan model (~8 MB) yuklab olinadi.</p>
+    <p class="muted">Tugmalar: ← → sahna, C kamera, R rejim, X/Y aks, K kalibrlash, F toʻliq ekran.</p>
+  </dialog>
+
+  <script src="js/holo-geo.js"></script>
+  <script type="module" src="js/jarvis.js"></script>
+</body>
+</html>
