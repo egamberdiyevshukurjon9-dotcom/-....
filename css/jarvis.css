@@ -49,3 +49,38 @@ body.flipx.flipy #stage { transform: scale(-1, -1); }
 .panel ul { margin: 0; padding-left: 20px; line-height: 1.55; }
 .panel .muted { color: var(--muted); line-height: 1.55; }
 .close { position: sticky; float: right; top: 0; background: none; border: 0; color: var(--text); font-size: 1.2rem; cursor: pointer; }
+
+/* Holat belgisi */
+.status {
+  position: fixed; right: 16px; top: 60px; z-index: 11; font-size: .85rem;
+  padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line);
+  background: rgba(6, 30, 38, .85); color: var(--muted); pointer-events: none;
+}
+.status.ok { color: var(--c2); border-color: var(--c2); }
+.status.warn { color: #ffb020; border-color: #7a5a1a; }
+.campip.nomirror video, .campip.nomirror canvas { transform: none; }
+
+/* Boshlash oynasi */
+.start {
+  position: fixed; inset: 0; z-index: 15; display: grid; place-items: center; padding: 16px;
+  background: radial-gradient(circle at 50% 40%, rgba(56,225,255,.12), rgba(0,0,0,.92) 60%);
+  transition: opacity .4s;
+}
+.start.hide { opacity: 0; pointer-events: none; }
+.startBox { max-width: 520px; text-align: center; display: grid; gap: 12px; justify-items: center; }
+.startBox h1 { margin: 0; letter-spacing: .3em; color: var(--c); text-shadow: 0 0 18px var(--c); font-size: clamp(1.8rem, 6vw, 2.8rem); }
+.startBox p { margin: 0; }
+.startBox .ring { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--c); box-shadow: 0 0 24px var(--c), inset 0 0 24px rgba(56,225,255,.4); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.08); opacity: .7; } }
+.big {
+  font: inherit; font-size: 1.1rem; font-weight: 700; color: #001018; cursor: pointer;
+  background: var(--c); border: 0; border-radius: 14px; padding: 14px 22px; box-shadow: 0 0 24px rgba(56,225,255,.5);
+}
+.big:hover { filter: brightness(1.1); }
+.gest { text-align: left; margin: 6px 0 0; padding-left: 20px; line-height: 1.6; color: var(--text); }
+.muted { color: var(--muted); }
+
+.row { display: grid; gap: 6px; margin: 14px 0; }
+.row input { width: 100%; accent-color: var(--c); }
+.chk { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; line-height: 1.4; }
+.chk input { margin-top: 3px; accent-color: var(--c); }

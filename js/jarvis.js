@@ -11,11 +11,31 @@ const $ = (s) => document.querySelector(s);
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
+/* One Euro filtri: sekin harakatda titramaydi, tez harakatda kechikmaydi */
+class OneEuro {
+  constructor(minCut = 1.2, beta = 0.02, dCut = 1) { this.minCut = minCut; this.beta = beta; this.dCut = dCut; this.x = null; this.dx = 0; }
+  static a(cut, dt) { const r = 2 * Math.PI * cut * dt; return r / (r + 1); }
+  f(v, dt) {
+    if (this.x === null || dt <= 0) { this.x = v; this.dx = 0; return v; }
+    const d = (v - this.x) / dt;
+    this.dx = lerp(this.dx, d, OneEuro.a(this.dCut, dt));
+    const cut = this.minCut + this.beta * Math.abs(this.dx);
+    this.x = lerp(this.x, v, OneEuro.a(cut, dt));
+    return this.x;
+  }
+  reset() { this.x = null; }
+}
 const C = "#38e1ff", C2 = "#22c55e", WARN = "#ffb020", DIM = "rgba(56,225,255,.35)";
 
 /* ---------- Sozlamalar (brauzer xotirasida saqlanadi) ---------- */
 const PREF = "ekotalim:jarvis";
-const prefs = { mode: "oddiy", flipX: false, flipY: false, H: null, camId: "", pip: true };
+const prefs = { mode: "oddiy", flipX: false, flipY: false, H: null, camId: "", pip: true,
+  zone: 0.6,      // kamera kadrining qancha qismi butun ekranga toʻgʻri keladi (kichik = sezgir)
+  smooth: 0.5,    // kursor silliqligi (0 = tez, 1 = juda silliq)
+  dwell: true,    // tugma ustida ushlab turib bosish
+  mirror: true,   // kamera foydalanuvchiga qarab turibdi (koʻzgu)
+  autoCam: false, // keyingi ochishda kamerani oʻzi yoqish
+};
 try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREF)) || {}); } catch (e) { /* xotira yoʻq */ }
 const save = () => { try { localStorage.setItem(PREF, JSON.stringify(prefs)); } catch (e) { /* ignore */ } };
 const qs = new URLSearchParams(location.search);
@@ -149,7 +169,7 @@ function button(id, x, y, w, h, label, on, active = false) {
   ctx.fillStyle = active ? "rgba(56,225,255,.22)" : hover ? "rgba(56,225,255,.14)" : "rgba(4,24,32,.6)";
   ctx.fillRect(x, y, w, h);
   glow(active || hover ? C : "transparent", 10); frame(x, y, w, h, active || hover ? C : DIM, 8); noGlow();
-  if (hover && cur.src === "hand") { ctx.fillStyle = "rgba(56,225,255,.35)"; ctx.fillRect(x, y + h - 3, w * clamp(cur.dwellT / DWELL, 0, 1), 3); }
+  if (hover && prefs.dwell && cur.src === "hand") { ctx.fillStyle = "rgba(56,225,255,.35)"; ctx.fillRect(x, y + h - 3, w * clamp(cur.dwellT / DWELL, 0, 1), 3); }
   text(label, x + w / 2, y + h / 2, Math.min(15, h * 0.36, w / (label.length * 0.62 + 1)), active ? "#fff" : C, "center");
 }
 
@@ -467,8 +487,12 @@ let HandLandmarker, FilesetResolver;
 async function startCamera() {
   if (!navigator.mediaDevices?.getUserMedia) { toast("Bu brauzer kamerani qoʻllamaydi. Chrome yoki Edge’da oching.", 5000); return; }
   if (!window.isSecureContext) { toast("Kamera faqat https:// yoki localhost orqali ishlaydi", 5000); return; }
+  if (hand.starting) return;
+  hand.starting = true;
+  $("#start")?.classList.add("hide");
+  setStatus("load");
   try {
-    toast("Qoʻlni taniydigan model yuklanmoqda…", 8000);
+    toast("Qoʻlni taniydigan model yuklanmoqda… (birinchi marta 10–30 soniya)", 8000);
     if (!HandLandmarker) ({ HandLandmarker, FilesetResolver } = await import(`${MP_URL}/vision_bundle.mjs`));
     if (!hand.lm) {
       const fs = await FilesetResolver.forVisionTasks(`${MP_URL}/wasm`);
@@ -480,14 +504,18 @@ async function startCamera() {
     hand.on = true;
     $("#camBtn").textContent = "📷 Kamera yoniq"; $("#camBtn").classList.remove("on");
     $("#camPip").hidden = !prefs.pip;
-    toast("✋ Qoʻlingizni kameraga koʻrsating", 3500);
+    prefs.autoCam = true; save();
+    setStatus("lost");
+    toast("✋ Qoʻlingizni kameraga koʻrsating. Chimdish = bosish, musht = pauza.", 4500);
   } catch (e) {
+    setStatus("off");
+    $("#start")?.classList.remove("hide");
     console.error(e);
     const msg = e?.name === "NotAllowedError" ? "Kameraga ruxsat berilmadi. Manzil satridagi 🔒 belgisidan ruxsat bering."
       : e?.name === "NotFoundError" ? "Kamera topilmadi. USB kamera yoki telefonni (Iriun/DroidCam) ulang."
       : "Kamerani yoqib boʻlmadi: internet aloqasini tekshiring (model birinchi marta yuklanadi).";
-    toast(msg, 6000);
-  }
+    toast(msg, 7000);
+  } finally { hand.starting = false; }
 }
 async function openStream(id) {
   hand.stream?.getTracks().forEach((tr) => tr.stop());
@@ -513,54 +541,109 @@ $("#camSel").addEventListener("change", async (e) => {
 
 const d2 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const extended = (l, tip, pip) => d2(l[tip], l[0]) > d2(l[pip], l[0]) * 1.15;
+const fx = new OneEuro(), fy = new OneEuro();
+function setFilter() {
+  // silliqlik sozlamasi → filtr chastotasi (px/s birligida)
+  const m = lerp(3.5, 0.35, clamp(prefs.smooth, 0, 1));
+  fx.minCut = fy.minCut = m; fx.beta = fy.beta = 0.004;
+}
+setFilter();
+
+/* Kamera kadridagi nuqtani (0..1) ekran nuqtasiga aylantirish */
+function camToScreen(raw) {
+  if (prefs.H && prefs.mode === "stol") { const [u, w] = applyH(prefs.H, raw[0], raw[1]); return [u * W, w * H]; }
+  const z = clamp(prefs.zone, 0.3, 1), cx = 0.5, cy = 0.45;
+  const x = prefs.mirror ? 1 - raw[0] : raw[0];
+  return [clamp((x - (cx - z / 2)) / z, 0, 1) * W, clamp((raw[1] - (cy - z / 2)) / z, 0, 1) * H];
+}
+
+function handLost() {
+  if (hand.pinch && cur.src === "hand") dragEnd();
+  hand.pinch = false; cur.pinch = false; hand.palmHist = []; hand.fistT = 0;
+  fx.reset(); fy.reset();
+  setStatus(hand.paused ? "pause" : "lost");
+}
 
 function handFrame(now, dt) {
   const v = hand.video;
   if (!hand.on || !hand.lm || v.readyState < 2 || v.currentTime === hand.last) return;
-  hand.last = v.currentTime;
+  const fdt = hand.lastNow ? (now - hand.lastNow) / 1000 : 1 / 30;
+  hand.last = v.currentTime; hand.lastNow = now;
   let res;
   try { res = hand.lm.detectForVideo(v, now); } catch (e) { return; }
   const l = res.landmarks?.[0];
   drawPip(l);
-  if (!l) { if (hand.pinch && cur.src === "hand") dragEnd(); hand.pinch = false; cur.pinch = false; hand.palmHist = []; return; }
+  if (!l) return handLost();
 
-  // Ishora nuqtasi: koʻrsatkich barmoq uchi (8). Kamera rasmi koʻzgudek aks ettiriladi.
-  const raw = [l[8].x, l[8].y];
-  let sx, sy;
-  if (prefs.H && prefs.mode === "stol") { const [u, w] = applyH(prefs.H, raw[0], raw[1]); sx = u * W; sy = w * H; }
-  else { sx = clamp((1 - raw[0] - 0.15) / 0.7, 0, 1) * W; sy = clamp((raw[1] - 0.12) / 0.7, 0, 1) * H; }
-  const [tx, ty] = toContent(sx, sy);
-  const k = 0.45; // silliqlash
-  cur.x = cur.src === "hand" ? lerp(cur.x, tx, k) : tx; cur.y = cur.src === "hand" ? lerp(cur.y, ty, k) : ty;
-  cur.src = "hand"; cur.seen = performance.now();
+  const t = performance.now();
+  const fingersUp = [[8, 6], [12, 10], [16, 14], [20, 18]].map(([a, b]) => extended(l, a, b));
+  const open = fingersUp.every(Boolean), fist = !fingersUp.some(Boolean);
+
+  // Musht 1 soniya → qoʻl bilan boshqarishni toʻxtatish / davom ettirish
+  if (fist && !hand.pinch) {
+    hand.fistT = (hand.fistT || 0) + fdt;
+    if (hand.fistT > 1 && !hand.fistDone) {
+      hand.fistDone = true; hand.paused = !hand.paused;
+      toast(hand.paused ? "⏸ Qoʻl boshqaruvi toʻxtatildi. Davom etish: yana musht qilib turing." : "▶ Qoʻl boshqaruvi yoqildi", 2500);
+    }
+  } else { hand.fistT = 0; hand.fistDone = false; }
+  if (hand.paused) { setStatus("pause"); cur.pinch = false; return; }
+  setStatus("ok");
+
+  // Ishora nuqtasi. Proyektor stolida barmoq uchi (stolga tegadi);
+  // boshqa rejimlarda koʻrsatkich barmoq ildizi (5) — chimdiganda siljimaydi, sichqonchadek barqaror.
+  const tipMode = prefs.mode === "stol";
+  const P = tipMode ? l[8] : { x: l[5].x * 0.7 + l[8].x * 0.3, y: l[5].y * 0.7 + l[8].y * 0.3 };
+  const raw = [P.x, P.y];
 
   // Chimdish: bosh barmoq (4) va koʻrsatkich (8) uchlari yaqin
   const size = d2(l[0], l[9]) || 0.1, ratio = d2(l[4], l[8]) / size;
   const wasPinch = hand.pinch;
-  hand.pinch = wasPinch ? ratio < 0.5 : ratio < 0.32; // gisterezis: titramasligi uchun
+  hand.pinch = wasPinch ? ratio < 0.5 : ratio < 0.3; // gisterezis: titramasligi uchun
   cur.pinch = hand.pinch;
   const pinchStart = hand.pinch && !wasPinch;
+  if (hand.pinch !== wasPinch) hand.freezeT = t + 140; // bosish paytida kursor sakramasin
+
+  if (t >= (hand.freezeT || 0) || hand.pinch && drag) {
+    const [sx, sy] = camToScreen(raw);
+    const [tx, ty] = toContent(sx, sy);
+    const fresh = cur.src !== "hand" || t - cur.seen > 400;
+    if (fresh) { fx.reset(); fy.reset(); }
+    cur.x = fx.f(tx, fdt); cur.y = fy.f(ty, fdt);
+  }
+  cur.src = "hand"; cur.seen = t;
+
   const still = hand.prevRaw ? Math.hypot(raw[0] - hand.prevRaw[0], raw[1] - hand.prevRaw[1]) < 0.006 : false;
   hand.prevRaw = raw;
 
-  if (S.cal) { calStep(raw, pinchStart, still, dt); return; }
+  if (S.cal) { calStep([l[8].x, l[8].y], pinchStart, still, fdt); return; }
   if (pinchStart) { if (!pressAt(cur.x, cur.y)) dragStart(cur.x, cur.y); cur.dwellT = -0.6; }
   else if (hand.pinch) dragMove(cur.x, cur.y);
   else if (wasPinch) dragEnd();
 
   // Ochiq kaft silkinishi → sahna almashadi
-  const open = [[8, 6], [12, 10], [16, 14], [20, 18]].every(([a, b]) => extended(l, a, b));
-  const t = performance.now();
   if (open && !hand.pinch) {
-    hand.palmHist.push([t, 1 - l[9].x]);
+    const px = prefs.mirror ? 1 - l[9].x : l[9].x;
+    hand.palmHist.push([t, px]);
     hand.palmHist = hand.palmHist.filter(([tt]) => t - tt < 300);
-    const [t0, x0] = hand.palmHist[0], x1 = 1 - l[9].x;
-    if (t - hand.swipeT > 900 && t - t0 > 120 && Math.abs(x1 - x0) > 0.22) {
-      const dir = (x1 > x0 ? 1 : -1) * (prefs.flipX ? -1 : 1);
+    const [t0, x0] = hand.palmHist[0];
+    if (t - hand.swipeT > 900 && t - t0 > 120 && Math.abs(px - x0) > 0.22) {
+      const dir = (px > x0 ? 1 : -1) * (prefs.flipX ? -1 : 1);
       goScene(S.scene + dir); hand.swipeT = t; hand.palmHist = [];
       toast(scenes[S.scene].name, 1200);
     }
   } else hand.palmHist = [];
+}
+
+/* Holat belgisi (yuqori oʻng burchak) */
+const statusEl = $("#status");
+let lastStatus = "";
+function setStatus(st) {
+  if (st === lastStatus || !statusEl) return;
+  lastStatus = st;
+  const T = { off: ["📷 Kamera oʻchiq", ""], ok: ["✋ Qoʻl topildi", "ok"], lost: ["… Qoʻlni kameraga koʻrsating", "warn"], pause: ["⏸ Pauza (musht = davom)", "warn"], load: ["⏳ Model yuklanmoqda…", "warn"] };
+  const [txt, cls] = T[st] || T.off;
+  statusEl.textContent = txt; statusEl.className = "status " + cls;
 }
 
 const pipCv = $("#camDraw"), pipCtx = pipCv.getContext("2d");
@@ -591,8 +674,8 @@ function loop(now) {
   const over = ui.find((u) => cur.x >= u.x && cur.x <= u.x + u.w && cur.y >= u.y && cur.y <= u.y + u.h);
   if (over && cur.src === "hand" && !hand.pinch && !S.cal && now - cur.seen < 300) {
     if (cur.dwellId !== over.id) { cur.dwellId = over.id; cur.dwellT = 0; }
-    cur.dwellT += dt;
-    if (cur.dwellT >= DWELL && over.id !== "slider") { over.on(); flash(over); cur.dwellT = -1.2; }
+    if (prefs.dwell) cur.dwellT += dt;
+    if (prefs.dwell && cur.dwellT >= DWELL && over.id !== "slider") { over.on(); flash(over); cur.dwellT = -1.2; }
   } else if (!over || cur.src !== "hand") { cur.dwellId = over && cur.src === "mouse" ? over.id : null; cur.dwellT = 0; }
   if (flashBox && now - flashBox.t < 250) { ctx.fillStyle = `rgba(255,255,255,${0.3 * (1 - (now - flashBox.t) / 250)})`; ctx.fillRect(flashBox.x, flashBox.y, flashBox.w, flashBox.h); }
   if (drag && ui.find((u) => u.id === "slider" && drag.sy >= u.y && drag.sy <= u.y + u.h)) ui.find((u) => u.id === "slider").on();
@@ -611,6 +694,7 @@ function applyPrefs() {
   $("#flipYBtn").classList.toggle("on", prefs.flipY);
   $("#pipBtn").classList.toggle("on", prefs.pip);
   $("#calBtn").hidden = prefs.mode !== "stol";
+  $("#camPip").classList.toggle("nomirror", !prefs.mirror);
   if (hand.on) $("#camPip").hidden = !prefs.pip;
 }
 function cycleMode() {
@@ -629,10 +713,28 @@ $("#calBtn").onclick = calStart;
 $("#pipBtn").onclick = () => { prefs.pip = !prefs.pip; save(); applyPrefs(); };
 $("#fsBtn").onclick = () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.().catch(() => {}));
 $("#helpBtn").onclick = () => $("#help").showModal();
+$("#setBtn").onclick = () => { syncSettings(); $("#settings").showModal(); };
+
+/* ---------- Sozlamalar oynasi ---------- */
+const setIn = { zone: $("#sZone"), smooth: $("#sSmooth"), dwell: $("#sDwell"), mirror: $("#sMirror") };
+function syncSettings() {
+  setIn.zone.value = Math.round((1 - prefs.zone) * 100);
+  setIn.smooth.value = Math.round(prefs.smooth * 100);
+  setIn.dwell.checked = prefs.dwell; setIn.mirror.checked = prefs.mirror;
+}
+setIn.zone.oninput = () => { prefs.zone = 1 - setIn.zone.value / 100; save(); };
+setIn.smooth.oninput = () => { prefs.smooth = setIn.smooth.value / 100; setFilter(); save(); };
+setIn.dwell.onchange = () => { prefs.dwell = setIn.dwell.checked; save(); };
+setIn.mirror.onchange = () => { prefs.mirror = setIn.mirror.checked; save(); applyPrefs(); };
+$("#sReset").onclick = () => { Object.assign(prefs, { zone: 0.6, smooth: 0.5, dwell: true, mirror: true }); setFilter(); save(); syncSettings(); applyPrefs(); toast("Sozlamalar tiklandi"); };
+
+/* ---------- Boshlash oynasi ---------- */
+$("#startCam").onclick = () => startCamera();
+$("#startMouse").onclick = () => { $("#start").classList.add("hide"); toast("Sichqoncha yoki barmoq bilan boshqaring. Kamerani keyin 📷 tugmasidan yoqasiz.", 4000); };
 document.querySelectorAll("[data-close]").forEach((b) => (b.onclick = () => b.closest("dialog").close()));
 
 addEventListener("keydown", (e) => {
-  if (e.target.closest?.("select")) return;
+  if (e.target.closest?.("select, input, dialog")) return;
   const k = e.key.toLowerCase();
   if (k === "arrowright") goScene(S.scene + 1);
   else if (k === "arrowleft") goScene(S.scene - 1);
@@ -655,7 +757,14 @@ function wake() { bar.classList.remove("hide"); clearTimeout(idleT); idleT = set
 bar.addEventListener("pointerenter", wake);
 wake();
 applyPrefs();
-if (qs.get("cam") === "1") startCamera();
+setStatus("off");
+if (window.JARVIS_STANDALONE) document.querySelectorAll("[data-site]").forEach((e) => e.remove());
+// Avval ruxsat berilgan boʻlsa yoki ?cam=1 boʻlsa kamera oʻzi yoqiladi
+(async () => {
+  let granted = false;
+  try { granted = (await navigator.permissions?.query({ name: "camera" }))?.state === "granted"; } catch (e) { /* qoʻllanmaydi */ }
+  if (qs.get("cam") === "1" || (prefs.autoCam && granted)) startCamera();
+})();
 
 // Sinov uchun ichki holat (brauzer konsolida)
 window.__jarvis = { S, cur, hand, prefs, scenes, homography, applyH, goScene };
