@@ -6,7 +6,7 @@
   <title>Eko-JARVIS — EkoTaʼlim</title>
   <meta name="description" content="Qoʻl harakati bilan boshqariladigan ekologik golografik stol: shisha quti (Pepper's ghost) va proyektor uchun. Kamera orqali barmoq bilan bosish va surish.">
   <meta name="theme-color" content="#000000">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icon.svg" type="image/svg+xml" data-site>
   <link rel="stylesheet" href="css/jarvis.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
   </div>
 
   <header class="bar" id="bar">
-    <a class="b" href="index.html" title="Bosh sahifa">← EkoTaʼlim</a>
+    <a class="b" href="index.html" title="Bosh sahifa" data-site>← EkoTaʼlim</a>
     <button class="b on" id="camBtn" title="Kamerani yoqish (C)">📷 Kamerani yoqish</button>
     <select class="b" id="camSel" title="Qaysi kamera" hidden></select>
     <button class="b" id="modeBtn" title="Koʻrsatish turi (R)">🖥 Oddiy ekran</button>
@@ -28,8 +28,43 @@
     <button class="b" id="calBtn" title="Kamerani ekranga moslash (K)">🎯 Kalibrlash</button>
     <button class="b" id="pipBtn" title="Kamera oynasi (V)">👁 Kamera oynasi</button>
     <button class="b" id="fsBtn" title="Toʻliq ekran (F)">⛶ Toʻliq ekran</button>
+    <button class="b" id="setBtn" title="Sezgirlik va silliqlik">⚙ Sozlash</button>
     <button class="b" id="helpBtn" title="Yordam (H)">?</button>
   </header>
+
+  <div class="status" id="status" role="status"></div>
+
+  <!-- Boshlash oynasi -->
+  <div class="start" id="start">
+    <div class="startBox">
+      <div class="ring"></div>
+      <h1>EKO-JARVIS</h1>
+      <p>Qoʻl harakati bilan boshqariladigan golografik ekran</p>
+      <button class="big" id="startCam">✋ Qoʻl bilan boshqarishni boshlash</button>
+      <button class="b" id="startMouse">🖱 Sichqoncha / sensor bilan</button>
+      <ul class="gest">
+        <li><b>Qoʻlni yuritish</b> — kursor yuradi</li>
+        <li><b>Chimdish</b> (bosh + koʻrsatkich barmoq) — bosish</li>
+        <li><b>Chimdib surish</b> — tortish, aylantirish</li>
+        <li><b>Ochiq kaftni silkitish</b> — keyingi sahna</li>
+        <li><b>Musht (1 soniya)</b> — pauza / davom</li>
+      </ul>
+      <p class="muted">Brauzer kameradan ruxsat soʻraydi: «Разрешить / Allow» ni bosing. Internet faqat birinchi ochishda kerak.</p>
+    </div>
+  </div>
+
+  <dialog class="panel" id="settings">
+    <button class="close" data-close aria-label="Yopish">✕</button>
+    <h2>⚙ Sozlash</h2>
+    <label class="row">Sezgirlik (qoʻlni ozgina yuritib butun ekranni qamrash)
+      <input type="range" id="sZone" min="0" max="70" step="1"></label>
+    <label class="row">Silliqlik (titrash kam ↔ tezroq javob)
+      <input type="range" id="sSmooth" min="0" max="100" step="1"></label>
+    <label class="chk"><input type="checkbox" id="sDwell"> Tugma ustida 1 soniya ushlab turib bosish</label>
+    <label class="chk"><input type="checkbox" id="sMirror"> Kamera menga qarab turibdi (koʻzgu). Kamera tepadan stolga qarasa, oʻchirib koʻring.</label>
+    <p><button class="b" id="sReset">↺ Asl holatiga qaytarish</button></p>
+    <p class="muted">Kursor titrasa: silliqlikni oshiring, xonani yorugʻroq qiling. Kursor ekran chetiga yetmasa: sezgirlikni oshiring.</p>
+  </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -42,6 +77,7 @@
       <li><b>Bosish:</b> bosh barmoq va koʻrsatkich barmoqni bir-biriga tekkizing (chimdish). Yoki kursorni tugma ustida 1 soniya ushlab turing.</li>
       <li><b>Surish (aylantirish):</b> chimdib turgan holda qoʻlni suring. Yer sharini aylantiradi, Orol yilini oʻzgartiradi.</li>
       <li><b>Keyingi sahna:</b> ochiq kaftni tez chapga yoki oʻngga silkiting.</li>
+      <li><b>Pauza:</b> mushtni 1 soniya ushlab turing (yana musht — davom etadi). Qoʻlni tushirib dam olayotganda kursor yurmaydi.</li>
       <li>Kamera boʻlmasa ham ishlaydi: sichqoncha, sensorli ekran va ← → tugmalari.</li>
     </ul>
     <h3>Rejimlar</h3>
